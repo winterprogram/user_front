@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:userfront/widgets/category_page.dart';
 import 'package:userfront/widgets/dashboard.dart';
 import 'package:userfront/widgets/landing_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +13,7 @@ Future<void> main() async {
   runApp(MaterialApp(
       theme: ThemeData.light().copyWith(
         iconTheme: IconThemeData(
-          color: Color(0xFFf1d300),
+          color: Colors.black,
         ),
         accentColor: Color(0xFFf1d300),
         textTheme: TextTheme(
@@ -35,7 +34,7 @@ Future<void> main() async {
           ),
         ),
       ),
-      home: userid == null ? LandingPage() : Category()));
+      home: userid == null ? LandingPage() : Dashboard()));
 }
 
 class MyApp extends StatefulWidget {
@@ -49,7 +48,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       theme: ThemeData.light().copyWith(
         iconTheme: IconThemeData(
-          color: Color(0xFFf1d300),
+          color: Colors.black,
         ),
         accentColor: Color(0xFFf1d300),
         textTheme: TextTheme(

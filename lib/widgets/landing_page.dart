@@ -32,12 +32,7 @@ class _LandingPageState extends State<LandingPage> {
           Expanded(
             flex: 7,
             child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('images/merchant.png'), //image
-                  fit: BoxFit.cover,
-                ),
-              ),
+              decoration: BoxDecoration(),
             ),
           ),
           Expanded(
@@ -63,10 +58,6 @@ class _LandingPageState extends State<LandingPage> {
                 ), //SignUp Button
               ],
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Container(),
           ),
         ],
       ),

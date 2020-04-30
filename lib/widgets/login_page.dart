@@ -10,8 +10,6 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:userfront/widgets/dashboard.dart';
 
-import 'category_page.dart';
-
 class Login extends StatefulWidget {
   @override
   _LoginState createState() => _LoginState();
@@ -89,10 +87,6 @@ class _LoginState extends State<Login> {
                         if (_formKey.currentState.validate()) {
 //    If all data are correct then save data to out variables
                           _formKey.currentState.save();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => Category()),
-                          );
                           print(phone);
                           loginMerchant(context, phone, password);
                         } else {
@@ -133,16 +127,12 @@ class _LoginState extends State<Login> {
           setState(() {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => Category()),
+              MaterialPageRoute(builder: (context) => Dashboard()),
             );
           });
         });
 
         save(json.decode(body)['data'][0]['userid']);
-      } else if (status == 'ask user to submit category list') {
-        save(json.decode(body)['data'][0]['userid']);
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => Category()));
       } else {
         Toast.show(
           "Icorrect username/password",
