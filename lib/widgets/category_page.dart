@@ -14,7 +14,7 @@ class _CategoryState extends State<Category> {
     'Ice-Cream Parlour',
     'Boutiques'
   ];
-  List<String> selectedCategoryList = List(5);
+  List<String> selectedCategoryList;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,9 +47,11 @@ class _CategoryState extends State<Category> {
     List<Widget> showChoice = List();
     showChoice.add(Text('Selected category according to priority'));
     print(selectedCategoryList);
-    selectedCategoryList.forEach((item) {
-      showChoice.add(Text(item));
-    });
+    if (selectedCategoryList != null) {
+      selectedCategoryList.forEach((item) {
+        showChoice.add(Text(item));
+      });
+    }
     print(showChoice);
     return showChoice;
   }

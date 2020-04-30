@@ -89,6 +89,10 @@ class _LoginState extends State<Login> {
                         if (_formKey.currentState.validate()) {
 //    If all data are correct then save data to out variables
                           _formKey.currentState.save();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Category()),
+                          );
                           print(phone);
                           loginMerchant(context, phone, password);
                         } else {
