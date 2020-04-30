@@ -25,7 +25,7 @@ class _SignUpState extends State<SignUp> {
   String zipcode;
   String selectedCity;
   String selectedCategory;
-  DateTime dob;
+  DateTime dob = DateTime.now();
   final List<String> city = <String>['Navi Mumbai', 'Thane', 'Mumbai'];
   final List<String> gender = <String>['Male', 'Female', 'Other'];
 
@@ -260,8 +260,9 @@ class _SignUpState extends State<SignUp> {
                             validator: (value) {
                               if (value == null) {
                                 return 'You have to specify the date of birth';
-                              } else if (value == DateTime.now()) {
-                                return 'Specify your correct date of birth';
+                              } else if (DateTime.now().year - value.year <
+                                  14) {
+                                return 'Your age should be greater than 14';
                               } else {
                                 return null;
                               }
@@ -270,8 +271,13 @@ class _SignUpState extends State<SignUp> {
                               return showDatePicker(
                                   context: context,
                                   firstDate: DateTime(1900),
-                                  initialDate: DateTime.now(),
+                                  initialDate: dob,
                                   lastDate: DateTime(2100));
+                            },
+                            onChanged: (value) {
+                              setState(() {
+                                dob = value;
+                              });
                             },
                             format: DateFormat("dd-MM-yyyy"),
                             decoration: InputDecoration(
@@ -337,8 +343,7 @@ class _SignUpState extends State<SignUp> {
   }
 
   String validatePassword(String value) {
-    Pattern pattern =
-        r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})';
+    Pattern pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})';
     RegExp regex = new RegExp(pattern);
     if (!regex.hasMatch(value) || value.length < 6)
       return 'Must contain - Alphabet (Caps/small), Number and Specialsdfs';
