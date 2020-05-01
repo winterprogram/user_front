@@ -3,6 +3,7 @@ import 'package:userfront/widgets/dashboard.dart';
 import 'package:userfront/widgets/landing_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+import 'package:userfront/widgets/navigation_page.dart';
 //  show AppBar, BuildContext, Center, Colors, Column, FloatingActionButton, Icon, Icons, Key, MainAxisAlignment, MaterialApp, Scaffold, State, StatefulWidget, StatelessWidget, Text, Theme, ThemeData, Widget, runApp;
 
 Future<void> main() async {
@@ -34,7 +35,7 @@ Future<void> main() async {
           ),
         ),
       ),
-      home: userid == null ? LandingPage() : Dashboard()));
+      home: userid == null ? LandingPage() : Navigation()));
 }
 
 class MyApp extends StatefulWidget {

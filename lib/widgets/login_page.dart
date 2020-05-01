@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:userfront/widgets/dashboard.dart';
 
+import 'navigation_page.dart';
+
 class Login extends StatefulWidget {
   @override
   _LoginState createState() => _LoginState();
@@ -127,12 +129,12 @@ class _LoginState extends State<Login> {
           setState(() {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => Dashboard()),
+              MaterialPageRoute(builder: (context) => Navigation()),
             );
           });
         });
 
-        save(json.decode(body)['data'][0]['userid']);
+        save(json.decode(body)['data']['userid']);
       } else {
         Toast.show(
           "Icorrect username/password",
