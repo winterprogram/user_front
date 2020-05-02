@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:android_intent/android_intent.dart';
+import 'package:userfront/widgets/constants.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -39,6 +40,9 @@ class _DashboardState extends State<Dashboard> {
           setState(() {
             placemark = place;
             city = placemark[0].locality;
+            getMerchantShops(userLocation, city).then((value) {
+              print(value);
+            });
           });
         });
       });
@@ -261,7 +265,70 @@ class _DashboardState extends State<Dashboard> {
   getLocationCity(Position userLocation) async {
     placemark = await Geolocator().placemarkFromCoordinates(
         userLocation.latitude, userLocation.longitude);
+    // placemark =
+    //   await Geolocator().placemarkFromCoordinates(19.05524, 72.830818);
     print(placemark[0].locality);
     return placemark;
+  }
+
+  getMerchantShops(location, city) async {
+    print(location);
+    var latitude = location.latitude.toString();
+    var longitude = location.longitude.toString();
+    try {
+      Response response = await get(
+        kUserGetShops,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'userlatitude': latitude,
+          'userlongitude': longitude,
+          'city': city,
+        },
+      ).timeout(const Duration(seconds: 10));
+      String body = response.body;
+      print(body);
+      //String status = json.decode(body)['message'];
+      String status = '';
+      if (status == 'successful login') {
+        Toast.show(
+          "Login Successful",
+          context,
+          duration: Toast.LENGTH_LONG,
+          gravity: Toast.BOTTOM,
+          textColor: Colors.black,
+          backgroundColor: Colors.green[200],
+        );
+        Future.delayed(const Duration(milliseconds: 500), () {});
+      } else {
+        Toast.show(
+          "Icorrect username/password",
+          context,
+          duration: 3,
+          gravity: Toast.BOTTOM,
+          textColor: Colors.black,
+          backgroundColor: Colors.red[200],
+        );
+      }
+
+      //call saving keys function
+    } on TimeoutException catch (_) {
+      Toast.show(
+        "Check your internet connection",
+        context,
+        duration: 3,
+        gravity: Toast.BOTTOM,
+        textColor: Colors.black,
+        backgroundColor: Colors.red[200],
+      );
+    } on SocketException catch (_) {
+      Toast.show(
+        "Check your internet connection",
+        context,
+        duration: 3,
+        gravity: Toast.BOTTOM,
+        textColor: Colors.black,
+        backgroundColor: Colors.red[200],
+      );
+    }
   }
 }
