@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
 import 'package:http/http.dart';
 import 'dart:convert';
 import 'package:toast/toast.dart';
@@ -10,7 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:android_intent/android_intent.dart';
+import 'package:userfront/models/merchant.dart';
 import 'package:userfront/widgets/constants.dart';
+import 'package:userfront/widgets/merchant_card.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -25,11 +28,22 @@ class _DashboardState extends State<Dashboard> {
   Geolocator geolocator = Geolocator();
   Position userLocation;
   List<Placemark> placemark;
+  String sublocality = '';
   String city = '';
-
+  String locationtoprint = 'Loading...';
+  List<Merchant> m;
+  List items = [
+    {
+      'imageurl': ['Loading'],
+      'fullname': 'Loading',
+      'shopname': 'Loading',
+      'address': 'Loading'
+    }
+  ];
   @override
   void initState() {
     super.initState();
+    print(items[0]);
     requestLocationPermission();
     //_gpsService();
     _getGPS();
@@ -39,9 +53,19 @@ class _DashboardState extends State<Dashboard> {
         getLocationCity(userLocation).then((place) {
           setState(() {
             placemark = place;
+            sublocality = placemark[0].subLocality;
             city = placemark[0].locality;
+            locationtoprint = sublocality + ', ' + city;
             getMerchantShops(userLocation, city).then((value) {
-              print(value);
+              setState(() {
+                print('This is value');
+                if (value == null) {
+                } else {
+                  items.clear();
+                  items.add(value);
+                  print(items.length);
+                }
+              });
             });
           });
         });
@@ -52,143 +76,117 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-        child: Container(
-            color: Color(0xFFf1d300),
-            child: Container(
-              width: double.infinity,
-              child: Container(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: GestureDetector(
-                          child: Container(
-                            width: 120,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(30),
-                                  bottomLeft: Radius.circular(30),
-                                  bottomRight: Radius.elliptical(30, 20)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Icon(
-                                  Icons.location_on,
-                                ),
-                                Text(city)
-                              ],
-                            ),
+      child: Container(
+        color: Colors.white,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+                top: -120,
+                right: -74,
+                child: Image.asset('images/circle2.png')),
+            Positioned(
+              top: 60,
+              left: 10,
+              child: Text(
+                'User_Front',
+                style: TextStyle(fontSize: 24),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 120),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(
+                            locationtoprint,
+                            style: TextStyle(
+                                fontSize: 14, color: Color(0xff293340)),
                           ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 5,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                              color: Color(0xffF38973),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(20))),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                            child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text('Explore Category'),
-                            Expanded(
-                              child: Container(
-                                child: ListView(
-                                  scrollDirection: Axis.horizontal,
-                                  children: <Widget>[
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Container(
-                                        width: 70,
-                                        color: Colors.purple,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Container(
-                                        width: 70,
-                                        color: Colors.pink,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Container(
-                                        width: 70,
-                                        color: Colors.amber,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Container(
-                                        width: 70,
-                                        color: Colors.orange,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Container(
-                                        width: 70,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                          FlatButton(
+                            child: Text(
+                              'Change',
+                              style: TextStyle(
+                                  fontSize: 18, color: Color(0xff426ed9)),
                             ),
-                          ],
-                        )),
+                            onPressed: () {},
+                          ),
+                        ],
+                      ),
+                      height: 48,
+                      decoration: BoxDecoration(
+                          color: Color(0xfff6f7fb),
+                          borderRadius: BorderRadius.all(Radius.circular(24))),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.all(10),
+                      color: Colors.grey[200],
+                      child: ListView.builder(
+                        itemCount: items.length + 1,
+                        itemBuilder: (BuildContext context, int index) {
+                          print(index);
+                          if (index == 0) {
+                            return Column(
+                              children: <Widget>[
+                                Container(
+                                  color: Colors.orange,
+                                  height: 200,
+                                ),
+                              ],
+                            );
+                          } else {
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: <Widget>[
+                                  MerchantCard(
+                                    src: items[index - 1]['imageurl'],
+                                    merchantShopName: items[index - 1]
+                                        ['shopname'],
+                                    merchantAddress: items[index - 1]
+                                        ['address'],
+                                    merchantCategory: items[index - 1]
+                                        ['category'],
+                                  )
+                                ],
+                              ),
+                            );
+                          }
+                        },
                       ),
                     ),
-                    Expanded(
-                      flex: 5,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  )
+                ],
               ),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.elliptical(30, 30),
-                ),
-              ),
-            )));
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
 //to know if gps is on
   Future<Null> _getGPS() async {
-    print('I am here');
     String _message;
     try {
       final String result = await platformMethodChannel.invokeMethod('getGPS');
       _message = result;
       if (_message == 'false') {
         _checkGps(_message);
-        print('this is message ' + _message);
+        print('this is _checkGps ' + _message);
       }
     } on PlatformException catch (e) {
       _message = "Can't do native stuff ${e.message}.";
@@ -232,7 +230,6 @@ class _DashboardState extends State<Dashboard> {
                         intent.launch();
                         Navigator.of(context, rootNavigator: true)
                             .pop('dialog');
-                        Navigator.pop(context);
                       })
                 ],
               );
@@ -266,7 +263,7 @@ class _DashboardState extends State<Dashboard> {
     placemark = await Geolocator().placemarkFromCoordinates(
         userLocation.latitude, userLocation.longitude);
     // placemark =
-    //   await Geolocator().placemarkFromCoordinates(19.05524, 72.830818);
+    //   await Geolocator().placemarkFromCoordinates(19.151850, 72.937088);
     print(placemark[0].locality);
     return placemark;
   }
@@ -277,31 +274,22 @@ class _DashboardState extends State<Dashboard> {
     var longitude = location.longitude.toString();
     try {
       Response response = await get(
-        kUserGetShops,
+        kurl + '/formaps',
         headers: <String, String>{
           'Content-Type': 'application/json',
           'userlatitude': latitude,
           'userlongitude': longitude,
-          'city': city,
+          'city': 'Thane',
         },
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
+
       print(body);
-      //String status = json.decode(body)['message'];
-      String status = '';
-      if (status == 'successful login') {
-        Toast.show(
-          "Login Successful",
-          context,
-          duration: Toast.LENGTH_LONG,
-          gravity: Toast.BOTTOM,
-          textColor: Colors.black,
-          backgroundColor: Colors.green[200],
-        );
-        Future.delayed(const Duration(milliseconds: 500), () {});
+      if (response.statusCode == 200) {
+        return json.decode(body)['data'][0];
       } else {
         Toast.show(
-          "Icorrect username/password",
+          "Some error occurred",
           context,
           duration: 3,
           gravity: Toast.BOTTOM,

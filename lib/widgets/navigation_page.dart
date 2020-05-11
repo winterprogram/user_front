@@ -18,9 +18,9 @@ class _NavigationState extends State<Navigation> {
   int pageNumber = 0;
   List<Color> elementColor = [
     Colors.white,
-    Color(0xFFf1d300),
-    Color(0xFFf1d300),
-    Color(0xFFf1d300)
+    Colors.blue,
+    Colors.blue,
+    Colors.blue,
   ];
   Widget _pageChooser(int page) {
     switch (page) {
@@ -51,48 +51,65 @@ class _NavigationState extends State<Navigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          leading: Icon(null),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.exit_to_app, size: 35),
-              onPressed: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                prefs.remove('userid');
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                        builder: (BuildContext ctx) => LandingPage()),
-                    ModalRoute.withName('/'));
-              },
-            ),
-          ],
-          backgroundColor: Color(0xFFf1d300),
-          elevation: 0,
-        ),
-        bottomNavigationBar: CurvedNavigationBar(
-          index: 0,
-          color: Colors.white,
-          buttonBackgroundColor: Color(0xFFf1d300),
-          animationDuration: Duration(milliseconds: 200),
-          height: 60,
-          backgroundColor: Colors.grey[300],
-          items: <Widget>[
-            Icon(Icons.home, size: 35, color: elementColor[0]),
-            Icon(Icons.search, size: 35, color: elementColor[1]),
-            Icon(Icons.pages, size: 35, color: elementColor[2]),
-            Icon(Icons.person, size: 35, color: elementColor[3]),
-          ],
+        /*bottomNavigationBar: BottomNavigationBar(
           onTap: (index) {
             setState(() {
-              elementColor[0] = Color(0xFFf1d300);
-              elementColor[1] = Color(0xFFf1d300);
-              elementColor[2] = Color(0xFFf1d300);
-              elementColor[3] = Color(0xFFf1d300);
-              elementColor[index] = Colors.white;
+              elementColor[0] = Colors.black;
+              elementColor[1] = Colors.black;
+              elementColor[2] = Colors.black;
+              elementColor[3] = Colors.black;
+              elementColor[index] = Colors.blue;
               pageNumber = index;
             });
           },
+          currentIndex: pageNumber,
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              title: Text('Home'),
+              icon: Icon(Icons.home, size: 25, color: elementColor[0]),
+            ),
+            BottomNavigationBarItem(
+              title: Text('Search'),
+              icon: Icon(Icons.search, size: 25, color: elementColor[1]),
+            ),
+            BottomNavigationBarItem(
+              title: Text('Coupons'),
+              icon: Icon(Icons.pages, size: 25, color: elementColor[2]),
+            ),
+            BottomNavigationBarItem(
+              title: Text('Profile'),
+              icon: Icon(Icons.person, size: 25, color: elementColor[3]),
+            )
+          ],
+        ),
+        */
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.grey[400]))),
+          child: CurvedNavigationBar(
+            index: 0,
+            color: Colors.white,
+            buttonBackgroundColor: Colors.blue,
+            animationDuration: Duration(milliseconds: 200),
+            height: 50,
+            backgroundColor: Colors.white,
+            items: <Widget>[
+              Icon(Icons.home, size: 25, color: elementColor[0]),
+              Icon(Icons.search, size: 25, color: elementColor[1]),
+              Icon(Icons.pages, size: 25, color: elementColor[2]),
+              Icon(Icons.person, size: 25, color: elementColor[3]),
+            ],
+            onTap: (index) {
+              setState(() {
+                elementColor[0] = Colors.blue;
+                elementColor[1] = Colors.blue;
+                elementColor[2] = Colors.blue;
+                elementColor[3] = Colors.blue;
+                elementColor[index] = Colors.white;
+                pageNumber = index;
+              });
+            },
+          ),
         ),
         body: _pageChooser(pageNumber));
   }

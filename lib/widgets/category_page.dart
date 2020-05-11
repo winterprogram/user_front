@@ -7,7 +7,6 @@ import 'package:userfront/widgets/constants.dart';
 import 'package:toast/toast.dart';
 import 'dart:async';
 import 'dart:io';
-import 'common_button.dart';
 import 'constants.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -40,70 +39,91 @@ class _CategoryState extends State<Category> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, size: 35),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        backgroundColor: Color(0xFFf1d300),
-        elevation: 0,
-      ),
       body: SafeArea(
         child: Container(
-          color: kOverallColor,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.elliptical(30, 30),
+          child: Stack(children: [
+            Container(
+              alignment: Alignment(-1, -1),
+              child: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  }),
+            ),
+            Positioned(
+              right: 20,
+              top: -180,
+              child: Container(
+                child: Image.asset('images/circle.png'),
               ),
             ),
-            child: Column(
-              children: <Widget>[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Column(
-                      children: <Widget>[
-                        SizedBox(
-                          height: 5,
-                        ),
-                        MultiSelectChip(
-                          categoryList,
-                          avatar: avatar,
-                          onSelectionChanged: (selectedList) {
-                            setState(() {
-                              selectedCategoryList = selectedList;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    Expanded(
-                      child: Container(
-                        child: Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: Column(
-                            children: printChoice(),
+            Container(
+              padding: EdgeInsets.all(10),
+              alignment: Alignment(1, -0.8),
+              child: Text(
+                'Select the categories in order of your preference',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 150),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 5,
+                          ),
+                          MultiSelectChip(
+                            categoryList,
+                            avatar: avatar,
+                            onSelectionChanged: (selectedList) {
+                              setState(() {
+                                selectedCategoryList = selectedList;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: Container(
+                          child: Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Column(
+                              children: printChoice(),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                Container(
-                  child: ClickButton(
-                      buttonTitle: 'SignUp',
-                      buttonFunction: () {
+                    ],
+                  ),
+                  Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Color(0xff426ed9)),
+                        borderRadius: BorderRadius.all(Radius.circular(24))),
+                    child: RaisedButton(
+                      color: Colors.blue,
+                      child: Text(
+                        'Next Page',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () {
                         this.widget.u.addCategory(selectedCategoryList);
                         createUser(this.widget.u);
-                      }),
-                )
-              ],
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ]),
         ),
       ),
     );
@@ -120,8 +140,9 @@ class _CategoryState extends State<Category> {
         showChoice.add(Container(
           padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(20)),
-              color: kOverallColor),
+              color: Colors.blue,
+              border: Border.all(color: Colors.blue),
+              borderRadius: BorderRadius.all(Radius.circular(30))),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -135,7 +156,7 @@ class _CategoryState extends State<Category> {
           ),
         ));
         showChoice.add(SizedBox(
-          height: 20,
+          height: 17,
         ));
       });
     }
@@ -146,7 +167,7 @@ class _CategoryState extends State<Category> {
   createUser(User u) async {
     try {
       Response response = await post(
-        kUserSignup,
+        kurl + '/userSignup',
         headers: <String, String>{'Content-Type': 'application/json'},
         body: jsonEncode(<String, dynamic>{
           'fullname': u.fullname,
@@ -237,8 +258,13 @@ class _MultiSelectChipState extends State<MultiSelectChip> {
           Container(
             padding: const EdgeInsets.all(2.0),
             child: ChoiceChip(
+              selectedColor: Colors.blue,
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                side: BorderSide(color: Colors.blue),
+                borderRadius: BorderRadius.all(Radius.circular(30)),
+              ),
               avatar: widget.avatar[item],
-              selectedColor: kOverallColor,
               labelStyle: TextStyle(color: Colors.black),
               label: Text(item),
               selected: selectedChoices.contains(item),

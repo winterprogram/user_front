@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:userfront/models/user_signup.dart';
-import 'package:userfront/widgets/common_button.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
@@ -32,74 +31,100 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, size: 35),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        backgroundColor: Color(0xFFf1d300),
-        elevation: 0,
-      ),
       body: SafeArea(
         child: Container(
-          color: Color(0xFFf1d300),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.elliptical(30, 30),
-              ),
-            ),
-            padding: EdgeInsets.all(10),
-            child: Form(
-              autovalidate: _autoValidate,
-              key: _formKey,
-              child: ListView(
-                children: <Widget>[
-                  TextFormField(
-                    onSaved: (String value) {
-                      name = value;
-                    },
-                    validator: (val) => val.isEmpty ? 'Name is required' : null,
-                    textCapitalization: TextCapitalization.words,
-                    style: TextStyle(
+          child: Stack(
+            children: <Widget>[
+              Container(
+                alignment: Alignment(-1, -1),
+                child: IconButton(
+                    icon: Icon(
+                      Icons.arrow_back,
                       color: Colors.black,
                     ),
-                    decoration: InputDecoration(
-                      icon: IconTheme(
-                        data: IconThemeData(
-                          color: Color(0xFFf1d300),
-                        ),
-                        child: Icon(Icons.person),
-                      ),
-                      hintText: 'Enter Your Full Name',
-                      labelText: 'Full Name',
-                    ),
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Container(
-                        child: IconTheme(
-                          data: IconThemeData(
-                            color: Color(0xFFf1d300),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }),
+              ),
+              Positioned(
+                right: 20,
+                top: -180,
+                child: Container(
+                  child: Image.asset('images/circle.png'),
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.all(10),
+                alignment: Alignment(1, -0.8),
+                child: Text(
+                  'Enter your details to create a new account',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 150),
+                padding: EdgeInsets.all(10),
+                child: Form(
+                  autovalidate: _autoValidate,
+                  key: _formKey,
+                  child: Container(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: <Widget>[
+                        Container(
+                          child: TextFormField(
+                            onSaved: (String value) {
+                              name = value;
+                            },
+                            validator: (val) =>
+                                val.isEmpty ? 'Name is required' : null,
+                            textCapitalization: TextCapitalization.words,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black,
+                            ),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(10),
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              hintText: 'Enter Your Full Name',
+                              labelText: 'Full Name',
+                            ),
                           ),
-                          child: Icon(Icons.accessibility),
                         ),
-                      ),
-                      SizedBox(width: 15),
-                      Expanded(
-                        child: Container(
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Container(
                           child: DropdownButtonFormField<String>(
+                            isDense: true,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(10),
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              labelText: 'Select your gender',
+                            ),
                             validator: (value) =>
                                 value == null ? 'Gender is required' : null,
-                            hint: Text(
-                              'Select your gender',
-                              style: TextStyle(color: Colors.black),
-                            ),
                             value: selectedGender,
                             style: TextStyle(
+                              fontSize: 14,
                               color: Colors.black,
                             ),
                             onChanged: (String newValue) {
@@ -116,90 +141,123 @@ class _SignUpState extends State<SignUp> {
                             }).toList(),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  TextFormField(
-                    onSaved: (String value) {
-                      phone = value;
-                    },
-                    validator: (val) => val.length != 10
-                        ? 'Phone Number should have 10 digits'
-                        : null,
-                    keyboardType: TextInputType.number,
-                    style: TextStyle(
-                      color: Colors.black,
-                    ),
-                    decoration: InputDecoration(
-                      icon: IconTheme(
-                        data: IconThemeData(
-                          color: Color(0xFFf1d300),
+                        SizedBox(
+                          height: 10,
                         ),
-                        child: Icon(Icons.contact_phone),
-                      ),
-                      hintText: 'Enter your mobile number',
-                      labelText: 'Mobile Number',
-                    ),
-                  ),
-                  TextFormField(
-                    onSaved: (String value) {
-                      email = value;
-                    },
-                    validator: validateEmail,
-                    style: TextStyle(
-                      color: Colors.black,
-                    ),
-                    decoration: InputDecoration(
-                      icon: IconTheme(
-                        data: IconThemeData(
-                          color: Color(0xFFf1d300),
-                        ),
-                        child: Icon(Icons.email),
-                      ),
-                      hintText: 'Enter your email address eg - abc@xyz.com',
-                      labelText: 'Email',
-                    ),
-                  ),
-                  TextFormField(
-                    onSaved: (String value) {
-                      password = value;
-                    },
-                    validator: validatePassword,
-                    obscureText: true,
-                    style: TextStyle(
-                      color: Colors.black,
-                    ),
-                    decoration: InputDecoration(
-                      icon: IconTheme(
-                        data: IconThemeData(
-                          color: Color(0xFFf1d300),
-                        ),
-                        child: Icon(Icons.security),
-                      ),
-                      hintText: 'Enter your password',
-                      labelText: 'Password',
-                    ),
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Container(
-                        child: IconTheme(
-                          data: IconThemeData(
-                            color: Color(0xFFf1d300),
+                        Container(
+                          child: TextFormField(
+                            onSaved: (String value) {
+                              phone = value;
+                            },
+                            validator: (val) => val.length != 10
+                                ? 'Phone Number should have 10 digits'
+                                : null,
+                            keyboardType: TextInputType.number,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black,
+                            ),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(10),
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              hintText: 'Enter your mobile number',
+                              labelText: 'Mobile Number',
+                            ),
                           ),
-                          child: Icon(Icons.location_city),
                         ),
-                      ),
-                      SizedBox(width: 15),
-                      Expanded(
-                        child: Container(
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Container(
+                          child: TextFormField(
+                            onSaved: (String value) {
+                              email = value;
+                            },
+                            validator: validateEmail,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black,
+                            ),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(10),
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              hintText:
+                                  'Enter your email address eg - abc@xyz.com',
+                              labelText: 'Email',
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Container(
+                          child: TextFormField(
+                            onSaved: (String value) {
+                              password = value;
+                            },
+                            validator: validatePassword,
+                            obscureText: true,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black,
+                            ),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(10),
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              hintText: 'Enter your password',
+                              labelText: 'Password',
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Container(
                           child: DropdownButtonFormField<String>(
+                            isDense: true,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(10),
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              labelText: 'Select City',
+                            ),
                             validator: (value) =>
                                 value == null ? 'City is required' : null,
-                            hint: Text(
-                              'Select City',
-                              style: TextStyle(color: Colors.black),
-                            ),
                             value: selectedCity,
                             style: TextStyle(
                               color: Colors.black,
@@ -218,44 +276,47 @@ class _SignUpState extends State<SignUp> {
                             }).toList(),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  TextFormField(
-                    onSaved: (String value) {
-                      zipcode = value;
-                    },
-                    validator: (val) =>
-                        val.isEmpty ? 'Zip Code is required' : null,
-                    keyboardType: TextInputType.number,
-                    style: TextStyle(
-                      color: Colors.black,
-                    ),
-                    decoration: InputDecoration(
-                      icon: IconTheme(
-                        data: IconThemeData(
-                          color: Color(0xFFf1d300),
+                        SizedBox(
+                          height: 10,
                         ),
-                        child: Icon(Icons.code),
-                      ),
-                      hintText: 'Enter your zip code',
-                      labelText: 'Zip Code',
-                    ),
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Container(
-                        child: IconTheme(
-                          data: IconThemeData(
-                            color: Color(0xFFf1d300),
+                        Container(
+                          child: TextFormField(
+                            onSaved: (String value) {
+                              zipcode = value;
+                            },
+                            validator: (val) =>
+                                val.isEmpty ? 'Zip Code is required' : null,
+                            keyboardType: TextInputType.number,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black,
+                            ),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(10),
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              hintText: 'Enter your zip code',
+                              labelText: 'Zip Code',
+                            ),
                           ),
-                          child: Icon(Icons.child_care),
                         ),
-                      ),
-                      SizedBox(width: 15),
-                      Expanded(
-                        child: Container(
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Container(
                           child: DateTimeField(
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 14,
+                            ),
                             initialValue: DateTime.now(),
                             validator: (value) {
                               if (value == null) {
@@ -281,52 +342,82 @@ class _SignUpState extends State<SignUp> {
                             },
                             format: DateFormat("dd-MM-yyyy"),
                             decoration: InputDecoration(
-                                labelText: 'Select your Date of Birth'),
+                              contentPadding: EdgeInsets.all(10),
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xff426ed9)),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24))),
+                              labelText: 'Select your Date of Birth',
+                            ),
                             onSaved: (value) {
                               dob = value;
                             },
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    child: ClickButton(
-                      buttonTitle: 'Next Page',
-                      buttonFunction: () {
-                        FocusScopeNode currentFocus = FocusScope.of(context);
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(24))),
+                          child: RaisedButton(
+                            color: Color(0xff426ed9),
+                            child: Text(
+                              'Next Page',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 14),
+                            ),
+                            onPressed: () {
+                              FocusScopeNode currentFocus =
+                                  FocusScope.of(context);
 
-                        if (!currentFocus.hasPrimaryFocus) {
-                          currentFocus.unfocus();
-                        }
-                        if (_formKey.currentState.validate()) {
+                              if (!currentFocus.hasPrimaryFocus) {
+                                currentFocus.unfocus();
+                              }
+                              if (_formKey.currentState.validate()) {
 //    If all data are correct then save data to out variables
-                          _formKey.currentState.save();
-                          String dateofbirth =
-                              DateFormat('dd-MM-yyyy').format(dob);
-                          User u = new User(
-                            fullname: name.trim(),
-                            gender: selectedGender,
-                            mailid: email.trim(),
-                            city: selectedCity,
-                            password: password.trim(),
-                            zipcode: zipcode.trim(),
-                            mobilenumber: phone.trim(),
-                            dob: dateofbirth,
-                          );
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => Category(u)));
-                        } else {
-                          _autoValidate = true;
-                        }
-                      },
+                                _formKey.currentState.save();
+                                String dateofbirth =
+                                    DateFormat('dd-MM-yyyy').format(dob);
+                                User u = new User(
+                                  fullname: name.trim(),
+                                  gender: selectedGender,
+                                  mailid: email.trim(),
+                                  city: selectedCity,
+                                  password: password.trim(),
+                                  zipcode: zipcode.trim(),
+                                  mobilenumber: phone.trim(),
+                                  dob: dateofbirth,
+                                );
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => Category(u)));
+                              } else {
+                                _autoValidate = true;
+                              }
+                            },
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(color: Colors.blue),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30)),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

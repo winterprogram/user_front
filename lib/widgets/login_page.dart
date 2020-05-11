@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:userfront/widgets/common_button.dart';
 import 'package:userfront/widgets/constants.dart';
 import 'package:toast/toast.dart';
 import 'package:http/http.dart';
@@ -25,79 +24,146 @@ class _LoginState extends State<Login> {
   String password;
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 5),
-        child: Form(
-          autovalidate: _autoValidate,
-          key: _formKey,
-          child: ListView(
-            children: <Widget>[
-              TextFormField(
-                onSaved: (String value) {
-                  phone = value;
-                },
-                validator: (val) => val.length != 10
-                    ? 'Phone Number should have 10 digits'
-                    : null,
-                keyboardType: TextInputType.number,
-                style: TextStyle(
-                  color: Colors.black,
-                ),
-                decoration: InputDecoration(
-                  icon: IconTheme(
-                    data: IconThemeData(
-                      color: Color(0xFFf1d300),
-                    ),
-                    child: Icon(Icons.contact_phone),
+    return Scaffold(
+      body: SafeArea(
+        child: Container(
+            child: Stack(
+          children: <Widget>[
+            Container(
+              alignment: Alignment(-1, -1),
+              child: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: Colors.black,
                   ),
-                  hintText: 'Enter your mobile number',
-                  labelText: 'Mobile Number',
-                ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  }),
+            ),
+            Container(
+              alignment: Alignment(-0.4, -0.6),
+              child: Text(
+                'Enter your login credentials',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              TextFormField(
-                onSaved: (String value) {
-                  password = value;
-                },
-                obscureText: true,
-                style: TextStyle(
-                  color: Colors.black,
-                ),
-                decoration: InputDecoration(
-                  icon: IconTheme(
-                    data: IconThemeData(
-                      color: Color(0xFFf1d300),
-                    ),
-                    child: Icon(Icons.security),
-                  ),
-                  hintText: 'Enter your password',
-                  labelText: 'Password',
-                ),
+            ),
+            Positioned(
+              right: 20,
+              top: -180,
+              child: Container(
+                child: Image.asset('images/circle.png'),
               ),
-              Container(
-                  child: ClickButton(
-                      buttonTitle: 'Login',
-                      buttonFunction: () {
-                        FocusScopeNode currentFocus = FocusScope.of(context);
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                padding: EdgeInsets.all(15),
+                alignment: Alignment.center,
+                child: Form(
+                  autovalidate: _autoValidate,
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Container(
+                        decoration: BoxDecoration(),
+                        child: TextFormField(
+                          onSaved: (String value) {
+                            phone = value;
+                          },
+                          validator: (val) => val.length != 10
+                              ? 'Phone Number should have 10 digits'
+                              : null,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.all(10),
+                            border: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Color(0xff426ed9)),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(24))),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Color(0xff426ed9)),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(24))),
+                            hintText: 'Enter your mobile number',
+                            labelText: 'Mobile Number',
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Container(
+                        child: TextFormField(
+                          onSaved: (String value) {
+                            password = value;
+                          },
+                          obscureText: true,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                          decoration: InputDecoration(
+                            suffixIcon: Container(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 3, horizontal: 15),
+                                height: 48,
+                                decoration: BoxDecoration(
+                                    color: Color(0xff426ed9),
+                                    border:
+                                        Border.all(color: Color(0xff00a5ec)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(24))),
+                                child: IconButton(
+                                  onPressed: () {
+                                    FocusScope.of(context)
+                                        .requestFocus(FocusNode());
 
-                        if (!currentFocus.hasPrimaryFocus) {
-                          currentFocus.unfocus();
-                        }
-
-                        if (_formKey.currentState.validate()) {
+                                    if (_formKey.currentState.validate()) {
 //    If all data are correct then save data to out variables
-                          _formKey.currentState.save();
-                          print(phone);
-                          loginMerchant(context, phone, password);
-                        } else {
-                          _autoValidate = true;
-                        }
-                      })),
-            ],
-          ),
-        ),
+                                      _formKey.currentState.save();
+                                      print(phone);
+                                      loginMerchant(context, phone, password);
+                                    } else {
+                                      setState(() {
+                                        _autoValidate = true;
+                                      });
+                                    }
+                                  },
+                                  icon: Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.white,
+                                  ),
+                                )),
+                            contentPadding: EdgeInsets.all(10),
+                            border: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Color(0xff426ed9)),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(24))),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Color(0xff426ed9)),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(24))),
+                            hintText: 'Enter your password',
+                            labelText: 'Password',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        )),
       ),
     );
   }
@@ -106,7 +172,7 @@ class _LoginState extends State<Login> {
     print(password);
     try {
       Response response = await post(
-        kUserLogin,
+        kurl + '/loginforUser',
         headers: <String, String>{'Content-Type': 'application/json'},
         body: jsonEncode(<String, dynamic>{
           'mobilenumber': mobile,
