@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:userfront/widgets/dashboard.dart';
 import 'package:userfront/widgets/landing_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
 import 'package:userfront/widgets/navigation_page.dart';
 //  show AppBar, BuildContext, Center, Colors, Column, FloatingActionButton, Icon, Icons, Key, MainAxisAlignment, MaterialApp, Scaffold, State, StatefulWidget, StatelessWidget, Text, Theme, ThemeData, Widget, runApp;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
   var userid = prefs.getString('userid');
+
   print(userid);
   runApp(MaterialApp(
       theme: ThemeData.light().copyWith(

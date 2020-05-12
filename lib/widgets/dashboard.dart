@@ -14,6 +14,7 @@ import 'package:android_intent/android_intent.dart';
 import 'package:userfront/models/merchant.dart';
 import 'package:userfront/widgets/constants.dart';
 import 'package:userfront/widgets/merchant_card.dart';
+import 'package:shimmer/shimmer.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -33,12 +34,7 @@ class _DashboardState extends State<Dashboard> {
   String locationtoprint = 'Loading...';
   List<Merchant> m;
   List items = [
-    {
-      'imageurl': ['Loading'],
-      'fullname': 'Loading',
-      'shopname': 'Loading',
-      'address': 'Loading'
-    }
+    {'message': 'Loading'}
   ];
   @override
   void initState() {
@@ -56,16 +52,15 @@ class _DashboardState extends State<Dashboard> {
             sublocality = placemark[0].subLocality;
             city = placemark[0].locality;
             locationtoprint = sublocality + ', ' + city;
-            getMerchantShops(userLocation, city).then((value) {
-              setState(() {
-                print('This is value');
-                if (value == null) {
-                } else {
-                  items.clear();
-                  items.add(value);
-                  print(items.length);
-                }
-              });
+          });
+          getMerchantShops(userLocation, city).then((value) {
+            setState(() {
+              print('This is value');
+              if (value == null) {
+              } else {
+                items.add(value);
+                print(items.length);
+              }
             });
           });
         });
@@ -133,37 +128,127 @@ class _DashboardState extends State<Dashboard> {
                       padding: EdgeInsets.all(10),
                       color: Colors.grey[200],
                       child: ListView.builder(
-                        itemCount: items.length + 1,
+                        itemCount: calclulateItemsLength(),
                         itemBuilder: (BuildContext context, int index) {
-                          print(index);
-                          if (index == 0) {
+                          if (items[0]['message'] == 'Loading') {
                             return Column(
                               children: <Widget>[
-                                Container(
-                                  color: Colors.orange,
-                                  height: 200,
+                                Shimmer.fromColors(
+                                  baseColor: Colors.grey[300],
+                                  highlightColor: Colors.grey[100],
+                                  enabled: true,
+                                  child: Container(
+                                    color: Colors.grey,
+                                    height: 200,
+                                  ),
                                 ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Container(
+                                    color: Colors.white,
+                                    height: 264,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: <Widget>[
+                                        Container(
+                                          height: 113,
+                                          child: ListView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: 2,
+                                            itemBuilder: (BuildContext context,
+                                                int index) {
+                                              return Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 2.0),
+                                                child: Shimmer.fromColors(
+                                                  baseColor: Colors.grey[300],
+                                                  highlightColor:
+                                                      Colors.grey[100],
+                                                  child: Container(
+                                                    width: 214,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        Container(
+                                          height: 100,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: <Widget>[
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 15, right: 24.0),
+                                                child: Shimmer.fromColors(
+                                                  baseColor: Colors.grey[300],
+                                                  highlightColor:
+                                                      Colors.grey[100],
+                                                  child: Container(
+                                                    height: 16,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 15, right: 24.0),
+                                                child: Shimmer.fromColors(
+                                                  baseColor: Colors.grey[300],
+                                                  highlightColor:
+                                                      Colors.grey[100],
+                                                  child: Container(
+                                                    height: 12,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                )
                               ],
                             );
+                          } else if (items[0]['message'] == 'no shops found') {
+                            return Container();
                           } else {
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                            if (index == 0) {
+                              return Column(
                                 children: <Widget>[
-                                  MerchantCard(
-                                    src: items[index - 1]['imageurl'],
-                                    merchantShopName: items[index - 1]
-                                        ['shopname'],
-                                    merchantAddress: items[index - 1]
-                                        ['address'],
-                                    merchantCategory: items[index - 1]
-                                        ['category'],
-                                  )
+                                  Container(
+                                    color: Colors.orange,
+                                    height: 200,
+                                  ),
                                 ],
-                              ),
-                            );
+                              );
+                            } else {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: <Widget>[
+                                    MerchantCard(
+                                      src: items[index - 1]['imageurl'],
+                                      merchantShopName: items[index - 1]
+                                          ['shopname'],
+                                      merchantAddress: items[index - 1]
+                                          ['address'],
+                                      merchantCategory: items[index - 1]
+                                          ['category'],
+                                    )
+                                  ],
+                                ),
+                              );
+                            }
                           }
                         },
                       ),
@@ -176,6 +261,14 @@ class _DashboardState extends State<Dashboard> {
         ),
       ),
     );
+  }
+
+  int calclulateItemsLength() {
+    if (items[0]['message'] == 'Loading') {
+      return items.length;
+    } else {
+      return items.length + 1;
+    }
   }
 
 //to know if gps is on

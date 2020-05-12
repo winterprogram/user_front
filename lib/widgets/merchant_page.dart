@@ -5,11 +5,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:userfront/widgets/image_picker.dart';
 
 class MerchantPage extends StatefulWidget {
-  List<dynamic> src;
-  String merchantShopName;
-  String merchantName;
-  String merchantAddress;
-  String merchantCategory;
+  final List<dynamic> src;
+  final String merchantShopName;
+  final String merchantName;
+  final String merchantAddress;
+  final String merchantCategory;
   MerchantPage(
       {this.src,
       this.merchantShopName,

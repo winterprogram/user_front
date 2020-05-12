@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/models/user_signup.dart';
 import 'package:http/http.dart';
 import 'package:userfront/widgets/constants.dart';
@@ -9,15 +10,17 @@ import 'dart:async';
 import 'dart:io';
 import 'constants.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:mixpanel_analytics/mixpanel_analytics.dart';
 
 class Category extends StatefulWidget {
-  User u;
+  final User u;
   Category(this.u);
   @override
   _CategoryState createState() => _CategoryState();
 }
 
 class _CategoryState extends State<Category> {
+  MixPanel m = MixPanel();
   Map<String, Widget> avatar = {
     'Restaurant/Bar': Icon(
       Icons.restaurant,
@@ -186,6 +189,8 @@ class _CategoryState extends State<Category> {
       String status = json.decode(body)['status'];
 
       if (status == 'user registered') {
+        signup(true);
+        onCreateAccount(u);
         Toast.show(
           "Success: Your account has been created. Please login.",
           context,
@@ -204,6 +209,7 @@ class _CategoryState extends State<Category> {
           });
         });
       } else if (status == 'user already exist') {
+        signup(false);
         Toast.show(
           "Failure: Your account already exists.",
           context,
@@ -212,6 +218,8 @@ class _CategoryState extends State<Category> {
           textColor: Colors.black,
           backgroundColor: Colors.red[200],
         );
+      } else {
+        signup(false);
       }
 
       print(body);
@@ -234,6 +242,34 @@ class _CategoryState extends State<Category> {
         backgroundColor: Colors.red[200],
       );
     }
+  }
+
+  signup(bool value) {
+    var result = m.mixpanelAnalytics
+        .track(event: 'clickSignup', properties: {'success': value});
+    result.then((value) {
+      print('this is click signup');
+      print(value);
+    });
+  }
+
+  onCreateAccount(User u) {
+    var result = m.mixpanelAnalytics
+        .engage(operation: MixpanelUpdateOperations.$set, value: {
+      '\$first_name': u.fullname,
+      '\$created': DateTime.now(),
+      '\$email': u.mailid,
+      '\$phone': u.mobilenumber,
+      'gender': u.gender,
+      'dob': u.dob,
+      'city': u.city,
+      'category': u.category,
+      'zipcode': u.zipcode,
+    });
+    result.then((value) {
+      print('this is signup profile');
+      print(value);
+    });
   }
 }
 

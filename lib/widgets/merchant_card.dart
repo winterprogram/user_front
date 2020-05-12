@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:userfront/widgets/merchant_page.dart';
 
 class MerchantCard extends StatelessWidget {
-  List<dynamic> src;
-  String merchantShopName;
-  String merchantName;
-  String merchantAddress;
-  String merchantCategory;
+  final List<dynamic> src;
+  final String merchantShopName;
+  final String merchantName;
+  final String merchantAddress;
+  final String merchantCategory;
   MerchantCard(
       {this.src,
       this.merchantShopName,
@@ -80,6 +80,7 @@ class MerchantCard extends StatelessWidget {
               decoration: BoxDecoration(
                   border: Border(top: BorderSide(color: Colors.grey[200]))),
               child: FlatButton(
+                onPressed: () {},
                 child: Row(
                   children: <Widget>[
                     Icon(

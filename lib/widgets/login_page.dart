@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/widgets/constants.dart';
 import 'package:toast/toast.dart';
 import 'package:http/http.dart';
@@ -7,7 +8,6 @@ import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:userfront/widgets/dashboard.dart';
 
 import 'navigation_page.dart';
 
@@ -17,6 +17,7 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  MixPanel m = MixPanel();
   bool _autoValidate = false;
   SharedPreferences prefs;
   final _formKey = GlobalKey<FormState>();
@@ -168,6 +169,15 @@ class _LoginState extends State<Login> {
     );
   }
 
+  login(bool value, String userid) {
+    var result = m.mixpanelAnalytics.track(
+        event: 'clickLogin', properties: {'success': value, 'userid': userid});
+    result.then((value) {
+      print('this is click login');
+      print(value);
+    });
+  }
+
   loginMerchant(BuildContext context, String mobile, String password) async {
     print(password);
     try {
@@ -183,6 +193,8 @@ class _LoginState extends State<Login> {
       print(body);
       String status = json.decode(body)['message'];
       if (status == 'successful login') {
+        save(json.decode(body)['data']['userid']);
+        login(true, json.decode(body)['data']['userid']);
         Toast.show(
           "Login Successful",
           context,
@@ -199,9 +211,8 @@ class _LoginState extends State<Login> {
             );
           });
         });
-
-        save(json.decode(body)['data']['userid']);
       } else {
+        login(false, null);
         Toast.show(
           "Icorrect username/password",
           context,
