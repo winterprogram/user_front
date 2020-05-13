@@ -1,17 +1,21 @@
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'dart:io';
-import 'package:device_info/device_info.dart';
-import 'package:flutter/services.dart';
-import 'package:mixpanel_analytics/mixpanel_analytics.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:android_intent/android_intent.dart';
+import 'package:device_info/device_info.dart';
+import 'package:mixpanel_analytics/mixpanel_analytics.dart';
 import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/custom_dialog.dart';
 import 'package:userfront/widgets/signup_page.dart';
 import 'package:userfront/widgets/login_page.dart';
-
 import 'navigation_page.dart';
+import 'package:app_settings/app_settings.dart';
 
 // landing page
 class LandingPage extends StatefulWidget {
@@ -25,6 +29,9 @@ class _LandingPageState extends State<LandingPage> {
   String _success;
   MixPanel m = MixPanel();
 
+  final PermissionHandler permissionHandler = PermissionHandler();
+  Map<PermissionGroup, PermissionStatus> permissions;
+  static const platformMethodChannel = const MethodChannel('merchant/getGPS');
   @override
   void initState() {
     super.initState();
@@ -39,7 +46,8 @@ class _LandingPageState extends State<LandingPage> {
       MaterialPageRoute(builder: (context) => SignUp()),
     );
     if (result == true) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Login()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => Navigation()));
     }
   }
 
@@ -77,7 +85,7 @@ class _LandingPageState extends State<LandingPage> {
                         onClickLandingPage('Login');
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => Navigation()),
+                          MaterialPageRoute(builder: (context) => Login()),
                         );
                       },
                       color: Colors.white,
@@ -125,17 +133,20 @@ class _LandingPageState extends State<LandingPage> {
       String deviceName;
       String identifier;
       String osVersion;
+      String osName;
       String deviceBrand;
       final DeviceInfoPlugin deviceInfoPlugin = new DeviceInfoPlugin();
       try {
         if (Platform.isAndroid) {
           var build = await deviceInfoPlugin.androidInfo;
+          osName = 'Android';
           osVersion = build.version.release;
           deviceBrand = build.brand;
           deviceName = build.model;
           identifier = build.androidId; //UUID for Android
         } else if (Platform.isIOS) {
           var data = await deviceInfoPlugin.iosInfo;
+          osName = 'IOS';
           deviceBrand = data.name;
           osVersion = data.systemVersion;
           deviceName = data.name;
@@ -154,28 +165,35 @@ class _LandingPageState extends State<LandingPage> {
         'osVersion': osVersion,
         'installTime': DateTime.now().toString(),
       });*/
+      m.id = await m.createMixPanel().then((_) {
+        var result = m.mixpanelAnalytics
+            .engage(operation: MixpanelUpdateOperations.$set, value: {
+          'osName': osName,
+          'deviceName': deviceName,
+          'deviceBrand': deviceBrand,
+          'osVersion': osVersion,
+          'installTime': DateTime.now().toUtc().toIso8601String(),
+          'distinct_id': m.id
+        });
+        result.then((value) {
+          print('This is first login');
+          print(value);
+        });
+      });
 
-      var result = m.mixpanelAnalytics
-          .engage(operation: MixpanelUpdateOperations.$set, value: {
-        'deviceName': deviceName,
-        'deviceBrand': deviceBrand,
-        'osVersion': osVersion,
-        'installTime': DateTime.now().toString(),
-      });
-      result.then((value) {
-        print('This is first login');
-        print(value);
-      });
       prefs.setBool('firstlogin', false);
     }
   }
 
-  onClickLandingPage(String button) {
-    var result = m.mixpanelAnalytics
-        .track(event: 'onClickLandingPage', properties: {'button': button});
-    result.then((value) {
-      print('this is on click');
-      print(value);
+  onClickLandingPage(String button) async {
+    m.id = await m.createMixPanel().then((_) {
+      var result = m.mixpanelAnalytics.track(
+          event: 'onClickLandingPage',
+          properties: {'button': button, 'distinct_id': m.id});
+      result.then((value) {
+        print('this is on click');
+        print(value);
+      });
     });
   }
 }

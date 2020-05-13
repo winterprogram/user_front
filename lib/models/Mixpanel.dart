@@ -7,26 +7,11 @@ import 'dart:io';
 
 class MixPanel {
   String id;
-  final user = StreamController<String>.broadcast();
+  final _user$ = StreamController<String>.broadcast();
   String _error;
   String _success;
   MixpanelAnalytics mixpanelAnalytics;
-  MixPanel() {
-    getID().then((value) {
-      this.id = value;
-    });
-    this.mixpanelAnalytics = MixpanelAnalytics(
-      token: 'a86ebdc33c2fc94098a9bc92fbc53c88',
-      userId$: this.user.stream,
-      verbose: true,
-      shaFn: (value) => value,
-      onError: (e) => () {
-        this._error = e;
-        this._success = null;
-      },
-    );
-    this.user.add(this.id);
-  }
+
   Future getID() async {
     String identifier;
     final DeviceInfoPlugin deviceInfoPlugin = new DeviceInfoPlugin();
@@ -41,6 +26,27 @@ class MixPanel {
     } on PlatformException {
       print('Failed to get platform version');
     }
-    return identifier;
+    this.id = identifier;
+    this._user$.add(identifier);
+  }
+
+  Future<void> createMixPanel() async {
+    this.id = await getID().then((_) {
+      this.mixpanelAnalytics = MixpanelAnalytics(
+        token: 'a86ebdc33c2fc94098a9bc92fbc53c88',
+        userId$: this._user$.stream,
+        shouldAnonymize: false,
+        verbose: true,
+        shaFn: (value) => value,
+        onError: (e) => () {
+          this._error = e;
+          this._success = null;
+        },
+      );
+
+      this._user$.add(this.id);
+      print(this.id);
+      return id;
+    });
   }
 }

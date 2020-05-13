@@ -15,6 +15,8 @@ import 'package:userfront/models/merchant.dart';
 import 'package:userfront/widgets/constants.dart';
 import 'package:userfront/widgets/merchant_card.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:app_settings/app_settings.dart';
+import 'custom_dialog.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -22,10 +24,9 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  static const platformMethodChannel = const MethodChannel('merchant/getGPS');
-  String nativeMessage = '';
   final PermissionHandler permissionHandler = PermissionHandler();
   Map<PermissionGroup, PermissionStatus> permissions;
+  static const platformMethodChannel = const MethodChannel('merchant/getGPS');
   Geolocator geolocator = Geolocator();
   Position userLocation;
   List<Placemark> placemark;
@@ -41,30 +42,33 @@ class _DashboardState extends State<Dashboard> {
     super.initState();
     print(items[0]);
     requestLocationPermission();
-    //_gpsService();
-    _getGPS();
-    _getLocation().then((position) {
-      setState(() {
-        userLocation = position;
-        getLocationCity(userLocation).then((place) {
+    _getGPS().then((value) {
+      if (value == true) {
+        _getLocation().then((position) {
           setState(() {
-            placemark = place;
-            sublocality = placemark[0].subLocality;
-            city = placemark[0].locality;
-            locationtoprint = sublocality + ', ' + city;
-          });
-          getMerchantShops(userLocation, city).then((value) {
-            setState(() {
-              print('This is value');
-              if (value == null) {
-              } else {
-                items.add(value);
-                print(items.length);
-              }
+            userLocation = position;
+            getLocationCity(userLocation).then((place) {
+              setState(() {
+                placemark = place;
+                sublocality = placemark[0].subLocality;
+                city = placemark[0].locality;
+                locationtoprint = sublocality + ', ' + city;
+              });
+              getMerchantShops(userLocation, city).then((value) {
+                setState(() {
+                  print('This is value');
+                  if (value == null) {
+                  } else {
+                    items[0]['message'] == 'Loaded';
+                    items.add(value);
+                    print(items.length);
+                  }
+                });
+              });
             });
           });
         });
-      });
+      }
     });
   }
 
@@ -271,24 +275,6 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
-//to know if gps is on
-  Future<Null> _getGPS() async {
-    String _message;
-    try {
-      final String result = await platformMethodChannel.invokeMethod('getGPS');
-      _message = result;
-      if (_message == 'false') {
-        _checkGps(_message);
-        print('this is _checkGps ' + _message);
-      }
-    } on PlatformException catch (e) {
-      _message = "Can't do native stuff ${e.message}.";
-    }
-    setState(() {
-      nativeMessage = _message;
-    });
-  }
-
   // to get location if gps is on
   Future<Position> _getLocation() async {
     var currentLocation;
@@ -299,56 +285,6 @@ class _DashboardState extends State<Dashboard> {
       currentLocation = null;
     }
     return currentLocation;
-  }
-
-  /*Show dialog if GPS not enabled and open settings location*/
-  Future _checkGps(String message) async {
-    print('running gps function2');
-    if (message == 'false') {
-      if (Theme.of(context).platform == TargetPlatform.android) {
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text("Can't get gurrent location"),
-                content: const Text(
-                    'Please make sure you enable GPS and set location mode to High accruacy and try again'),
-                actions: <Widget>[
-                  FlatButton(
-                      child: Text('Ok'),
-                      onPressed: () {
-                        final AndroidIntent intent = AndroidIntent(
-                            action:
-                                'android.settings.LOCATION_SOURCE_SETTINGS');
-                        intent.launch();
-                        Navigator.of(context, rootNavigator: true)
-                            .pop('dialog');
-                      })
-                ],
-              );
-            });
-      }
-    }
-  }
-
-  /*Checking if your App has been Given Permission*/
-  Future<bool> requestLocationPermission({Function onPermissionDenied}) async {
-    var granted = await _requestPermission(PermissionGroup.location);
-    if (granted != true) {
-      requestLocationPermission();
-    }
-    debugPrint('requestLocationPermission $granted');
-    return granted;
-  }
-
-  //Code below is for asking location
-  Future<bool> _requestPermission(PermissionGroup permission) async {
-    final PermissionHandler _permissionHandler = PermissionHandler();
-    var result = await _permissionHandler.requestPermissions([permission]);
-    if (result[permission] == PermissionStatus.granted) {
-      return true;
-    }
-    return false;
   }
 
   //get city name
@@ -410,6 +346,75 @@ class _DashboardState extends State<Dashboard> {
         textColor: Colors.black,
         backgroundColor: Colors.red[200],
       );
+    }
+  }
+
+  //Code below is for asking location
+  Future<bool> _requestPermission(PermissionGroup permission) async {
+    final PermissionHandler _permissionHandler = PermissionHandler();
+    var result = await _permissionHandler.requestPermissions([permission]);
+    if (result[permission] == PermissionStatus.granted) {
+      return true;
+    }
+    return false;
+  }
+
+  /*Checking if your App has been Given Permission*/
+  Future<bool> requestLocationPermission({Function onPermissionDenied}) async {
+    var granted = await _requestPermission(PermissionGroup.location);
+    if (granted != true) {
+      requestLocationPermission();
+    }
+    debugPrint('requestLocationPermission $granted');
+    return granted;
+  }
+
+  /*Show dialog if GPS not enabled and open settings location*/
+  Future _checkGps(String message) async {
+    print('running gps function2');
+    CustomDialog.show(
+        context,
+        'GPS turned off',
+        'Gps should be turned on for login',
+        'Open location settings',
+        AppSettings.openLocationSettings);
+    /* if (Theme.of(context).platform == TargetPlatform.android) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Can't get gurrent location"),
+              content: const Text(
+                  'Please make sure you enable GPS and set location mode to High accruacy and try again'),
+              actions: <Widget>[
+                FlatButton(
+                    child: Text('Ok'),
+                    onPressed: () {
+                      final AndroidIntent intent = AndroidIntent(
+                          action: 'android.settings.LOCATION_SOURCE_SETTINGS');
+                      intent.launch();
+                      Navigator.of(context, rootNavigator: true).pop('dialog');
+                    })
+              ],
+            );
+          });
+    }*/
+  }
+
+  //to know if gps is on
+  Future<bool> _getGPS() async {
+    String _message;
+    try {
+      final String result = await platformMethodChannel.invokeMethod('getGPS');
+      _message = result;
+      if (_message == 'false') {
+        _checkGps(_message);
+        print('this is _checkGps ' + _message);
+      } else {
+        return true;
+      }
+    } on PlatformException catch (e) {
+      _message = "Can't do native stuff ${e.message}.";
     }
   }
 }

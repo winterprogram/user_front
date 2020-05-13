@@ -112,9 +112,13 @@ class _CategoryState extends State<Category> {
                         border: Border.all(color: Color(0xff426ed9)),
                         borderRadius: BorderRadius.all(Radius.circular(24))),
                     child: RaisedButton(
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(color: Colors.blue),
+                        borderRadius: BorderRadius.all(Radius.circular(30)),
+                      ),
                       color: Colors.blue,
                       child: Text(
-                        'Next Page',
+                        'Sign Up',
                         style: TextStyle(color: Colors.white),
                       ),
                       onPressed: () {
@@ -189,7 +193,7 @@ class _CategoryState extends State<Category> {
       String status = json.decode(body)['status'];
 
       if (status == 'user registered') {
-        signup(true);
+        signup(true, status);
         onCreateAccount(u);
         Toast.show(
           "Success: Your account has been created. Please login.",
@@ -209,7 +213,7 @@ class _CategoryState extends State<Category> {
           });
         });
       } else if (status == 'user already exist') {
-        signup(false);
+        signup(false, status);
         Toast.show(
           "Failure: Your account already exists.",
           context,
@@ -219,7 +223,7 @@ class _CategoryState extends State<Category> {
           backgroundColor: Colors.red[200],
         );
       } else {
-        signup(false);
+        signup(false, status);
       }
 
       print(body);
@@ -244,31 +248,39 @@ class _CategoryState extends State<Category> {
     }
   }
 
-  signup(bool value) {
-    var result = m.mixpanelAnalytics
-        .track(event: 'clickSignup', properties: {'success': value});
-    result.then((value) {
-      print('this is click signup');
-      print(value);
+  signup(bool value, String message) async {
+    m.id = await m.createMixPanel().then((_) {
+      var result = m.mixpanelAnalytics.track(event: 'clickSignup', properties: {
+        'success': value,
+        'message': message,
+        'distinct_id': m.id
+      });
+      result.then((value) {
+        print('this is click signup');
+        print(value);
+      });
     });
   }
 
-  onCreateAccount(User u) {
-    var result = m.mixpanelAnalytics
-        .engage(operation: MixpanelUpdateOperations.$set, value: {
-      '\$first_name': u.fullname,
-      '\$created': DateTime.now(),
-      '\$email': u.mailid,
-      '\$phone': u.mobilenumber,
-      'gender': u.gender,
-      'dob': u.dob,
-      'city': u.city,
-      'category': u.category,
-      'zipcode': u.zipcode,
-    });
-    result.then((value) {
-      print('this is signup profile');
-      print(value);
+  onCreateAccount(User u) async {
+    m.id = await m.createMixPanel().then((_) {
+      var result = m.mixpanelAnalytics
+          .engage(operation: MixpanelUpdateOperations.$set, value: {
+        '\$first_name': u.fullname,
+        '\$created': DateTime.now().toUtc().toIso8601String(),
+        '\$email': u.mailid,
+        '\$phone': u.mobilenumber,
+        'gender': u.gender,
+        'dob': u.dob,
+        'city': u.city,
+        'category': u.category,
+        'zipcode': u.zipcode,
+        'distinct_id': m.id
+      });
+      result.then((value) {
+        print('this is signup profile');
+        print(value);
+      });
     });
   }
 }

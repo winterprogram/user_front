@@ -169,12 +169,18 @@ class _LoginState extends State<Login> {
     );
   }
 
-  login(bool value, String userid) {
-    var result = m.mixpanelAnalytics.track(
-        event: 'clickLogin', properties: {'success': value, 'userid': userid});
-    result.then((value) {
-      print('this is click login');
-      print(value);
+  login(bool value, String userid, String message) async {
+    m.id = await m.createMixPanel().then((_) {
+      var result = m.mixpanelAnalytics.track(event: 'clickLogin', properties: {
+        'success': value,
+        'userid': userid,
+        'message': message,
+        'distinct_id': m.id
+      });
+      result.then((value) {
+        print('this is click login');
+        print(value);
+      });
     });
   }
 
@@ -194,7 +200,7 @@ class _LoginState extends State<Login> {
       String status = json.decode(body)['message'];
       if (status == 'successful login') {
         save(json.decode(body)['data']['userid']);
-        login(true, json.decode(body)['data']['userid']);
+        login(true, json.decode(body)['data']['userid'], status);
         Toast.show(
           "Login Successful",
           context,
@@ -212,7 +218,7 @@ class _LoginState extends State<Login> {
           });
         });
       } else {
-        login(false, null);
+        login(false, null, status);
         Toast.show(
           "Icorrect username/password",
           context,
