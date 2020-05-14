@@ -12,6 +12,7 @@ import 'package:device_info/device_info.dart';
 import 'package:mixpanel_analytics/mixpanel_analytics.dart';
 import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/widgets/custom_dialog.dart';
+import 'package:userfront/widgets/razorpay.dart';
 import 'package:userfront/widgets/signup_page.dart';
 import 'package:userfront/widgets/login_page.dart';
 import 'navigation_page.dart';
@@ -24,7 +25,7 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  final user = StreamController<String>.broadcast();
+  RazorPay r;
   String _error;
   String _success;
   MixPanel m = MixPanel();
@@ -36,6 +37,7 @@ class _LandingPageState extends State<LandingPage> {
   void initState() {
     super.initState();
     checkfirstLogin();
+    r = RazorPay(context: context);
   }
 
   signup(BuildContext context) async {
@@ -82,11 +84,13 @@ class _LandingPageState extends State<LandingPage> {
                       ),
                       child: Text('Login', style: TextStyle(fontSize: 15)),
                       onPressed: () {
-                        onClickLandingPage('Login');
+                        print('running function');
+                        r.checkout(20);
+                        /* onClickLandingPage('Login');
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => Login()),
-                        );
+                        );*/
                       },
                       color: Colors.white,
                     ),
