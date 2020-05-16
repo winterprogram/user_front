@@ -41,6 +41,7 @@ class _DashboardState extends State<Dashboard> {
     print(status);
     requestLocationPermission().then((value) {
       _getGPS().then((value) {
+        print(value);
         if (value == true) {
           _getLocation().then((position) {
             setState(() {
@@ -377,12 +378,15 @@ class _DashboardState extends State<Dashboard> {
   /*Show dialog if GPS not enabled and open settings location*/
   Future _checkGps(String message) async {
     print('running gps function2');
-    CustomDialog.show(
-        context,
-        'GPS turned off',
-        'Gps should be turned on for login',
-        'Open location settings',
-        AppSettings.openLocationSettings);
+    await CustomDialog.show(
+            context,
+            'GPS turned off',
+            'Gps should be turned on for login',
+            'Open location settings',
+            AppSettings.openLocationSettings)
+        .then((_) {
+      return;
+    });
     /* if (Theme.of(context).platform == TargetPlatform.android) {
       showDialog(
           context: context,
@@ -411,16 +415,21 @@ class _DashboardState extends State<Dashboard> {
     String _message;
     try {
       final String result = await platformMethodChannel.invokeMethod('getGPS');
+      print('here');
       _message = result;
+      print('this is _message' + _message);
       if (_message == 'false') {
-        _checkGps(_message);
+        await _checkGps(_message).then((value) {
+          _getGPS();
+        });
         print('this is _checkGps ' + _message);
       } else {
+        print('i am here');
         return true;
       }
     } on PlatformException catch (e) {
       _message = "Can't do native stuff ${e.message}.";
     }
-    return false;
+    return true;
   }
 }
