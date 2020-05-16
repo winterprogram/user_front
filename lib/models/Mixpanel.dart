@@ -7,9 +7,7 @@ import 'dart:io';
 
 class MixPanel {
   String id;
-  final _user$ = StreamController<String>.broadcast();
-  String _error;
-  String _success;
+  Stream<String> _user$;
   MixpanelAnalytics mixpanelAnalytics;
 
   Future getID() async {
@@ -27,24 +25,21 @@ class MixPanel {
       print('Failed to get platform version');
     }
     this.id = identifier;
-    this._user$.add(identifier);
   }
 
   Future<void> createMixPanel() async {
     this.id = await getID().then((_) {
       this.mixpanelAnalytics = MixpanelAnalytics(
         token: 'a86ebdc33c2fc94098a9bc92fbc53c88',
-        userId$: this._user$.stream,
+        userId$: this._user$,
         shouldAnonymize: false,
         verbose: true,
         shaFn: (value) => value,
         onError: (e) => () {
-          this._error = e;
-          this._success = null;
+          print(e);
         },
       );
 
-      this._user$.add(this.id);
       print(this.id);
       return id;
     });

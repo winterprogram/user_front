@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:android_intent/android_intent.dart';
 import 'package:userfront/models/merchant.dart';
 import 'package:userfront/widgets/constants.dart';
 import 'package:userfront/widgets/merchant_card.dart';
@@ -34,41 +33,41 @@ class _DashboardState extends State<Dashboard> {
   String city = '';
   String locationtoprint = 'Loading...';
   List<Merchant> m;
-  List items = [
-    {'message': 'Loading'}
-  ];
+  List items = List();
+  String status = 'Loading';
   @override
   void initState() {
     super.initState();
-    print(items[0]);
-    requestLocationPermission();
-    _getGPS().then((value) {
-      if (value == true) {
-        _getLocation().then((position) {
-          setState(() {
-            userLocation = position;
-            getLocationCity(userLocation).then((place) {
-              setState(() {
-                placemark = place;
-                sublocality = placemark[0].subLocality;
-                city = placemark[0].locality;
-                locationtoprint = sublocality + ', ' + city;
-              });
-              getMerchantShops(userLocation, city).then((value) {
+    print(status);
+    requestLocationPermission().then((value) {
+      _getGPS().then((value) {
+        if (value == true) {
+          _getLocation().then((position) {
+            setState(() {
+              userLocation = position;
+              getLocationCity(userLocation).then((place) {
                 setState(() {
-                  print('This is value');
-                  if (value == null) {
-                  } else {
-                    items[0]['message'] == 'Loaded';
-                    items.add(value);
-                    print(items.length);
-                  }
+                  placemark = place;
+                  sublocality = placemark[0].subLocality;
+                  city = placemark[0].locality;
+                  locationtoprint = sublocality + ', ' + city;
+                });
+                getMerchantShops(userLocation, city).then((value) {
+                  setState(() {
+                    if (value == null) {
+                    } else {
+                      status = 'Loaded';
+                      print(status);
+                      items = value;
+                      print(items.length);
+                    }
+                  });
                 });
               });
             });
           });
-        });
-      }
+        }
+      });
     });
   }
 
@@ -134,7 +133,7 @@ class _DashboardState extends State<Dashboard> {
                       child: ListView.builder(
                         itemCount: calclulateItemsLength(),
                         itemBuilder: (BuildContext context, int index) {
-                          if (items[0]['message'] == 'Loading') {
+                          if (status == 'Loading') {
                             return Column(
                               children: <Widget>[
                                 Shimmer.fromColors(
@@ -220,7 +219,7 @@ class _DashboardState extends State<Dashboard> {
                                 )
                               ],
                             );
-                          } else if (items[0]['message'] == 'no shops found') {
+                          } else if (status == 'no shops found') {
                             return Container();
                           } else {
                             if (index == 0) {
@@ -232,7 +231,7 @@ class _DashboardState extends State<Dashboard> {
                                   ),
                                 ],
                               );
-                            } else {
+                            } else if (status == 'Loaded') {
                               return Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8.0),
@@ -248,9 +247,15 @@ class _DashboardState extends State<Dashboard> {
                                           ['address'],
                                       merchantCategory: items[index - 1]
                                           ['category'],
+                                      merchantId: items[index - 1]
+                                          ['merchantid'],
                                     )
                                   ],
                                 ),
+                              );
+                            } else {
+                              return Container(
+                                child: Text('Some error occurred'),
                               );
                             }
                           }
@@ -268,8 +273,8 @@ class _DashboardState extends State<Dashboard> {
   }
 
   int calclulateItemsLength() {
-    if (items[0]['message'] == 'Loading') {
-      return items.length;
+    if (status == 'Loading') {
+      return 1;
     } else {
       return items.length + 1;
     }
@@ -312,10 +317,10 @@ class _DashboardState extends State<Dashboard> {
         },
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
-
-      print(body);
+      // print('this is body');
+      //print(body);
       if (response.statusCode == 200) {
-        return json.decode(body)['data'][0];
+        return json.decode(body)['data'];
       } else {
         Toast.show(
           "Some error occurred",
@@ -416,5 +421,6 @@ class _DashboardState extends State<Dashboard> {
     } on PlatformException catch (e) {
       _message = "Can't do native stuff ${e.message}.";
     }
+    return false;
   }
 }

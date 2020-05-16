@@ -32,7 +32,7 @@ dev_dependencies:
   mixpanel_analytics: ^1.2.1
   app_settings: 4.0.0
   razorpay_flutter: ^1.1.4
-
+  dotted_border: ^1.0.5
 
 flutter:
   uses-material-design: true

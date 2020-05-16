@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,16 +6,13 @@ import 'package:flutter/rendering.dart';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:android_intent/android_intent.dart';
 import 'package:device_info/device_info.dart';
 import 'package:mixpanel_analytics/mixpanel_analytics.dart';
 import 'package:userfront/models/Mixpanel.dart';
-import 'package:userfront/widgets/custom_dialog.dart';
 import 'package:userfront/widgets/razorpay.dart';
 import 'package:userfront/widgets/signup_page.dart';
 import 'package:userfront/widgets/login_page.dart';
 import 'navigation_page.dart';
-import 'package:app_settings/app_settings.dart';
 
 // landing page
 class LandingPage extends StatefulWidget {
@@ -26,8 +22,6 @@ class LandingPage extends StatefulWidget {
 
 class _LandingPageState extends State<LandingPage> {
   RazorPay r;
-  String _error;
-  String _success;
   MixPanel m = MixPanel();
 
   final PermissionHandler permissionHandler = PermissionHandler();
@@ -38,6 +32,12 @@ class _LandingPageState extends State<LandingPage> {
     super.initState();
     checkfirstLogin();
     r = RazorPay(context: context);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    r.clear();
   }
 
   signup(BuildContext context) async {
@@ -84,13 +84,12 @@ class _LandingPageState extends State<LandingPage> {
                       ),
                       child: Text('Login', style: TextStyle(fontSize: 15)),
                       onPressed: () {
-                        print('running function');
-                        r.checkout(20);
-                        /* onClickLandingPage('Login');
+                        //r.checkout(20);
+                        onClickLandingPage('Login');
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => Login()),
-                        );*/
+                        );
                       },
                       color: Colors.white,
                     ),
@@ -183,6 +182,7 @@ class _LandingPageState extends State<LandingPage> {
           print('This is first login');
           print(value);
         });
+        return;
       });
 
       prefs.setBool('firstlogin', false);
@@ -198,6 +198,7 @@ class _LandingPageState extends State<LandingPage> {
         print('this is on click');
         print(value);
       });
+      return;
     });
   }
 }

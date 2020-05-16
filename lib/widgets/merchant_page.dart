@@ -1,17 +1,21 @@
 import 'dart:math';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:userfront/widgets/image_picker.dart';
 
+import 'makepaymet_sheet.dart';
+
 class MerchantPage extends StatefulWidget {
   final List<dynamic> src;
+  final String merchantId;
   final String merchantShopName;
   final String merchantName;
   final String merchantAddress;
   final String merchantCategory;
   MerchantPage(
       {this.src,
+      this.merchantId,
       this.merchantShopName,
       this.merchantName,
       this.merchantAddress,
@@ -173,7 +177,16 @@ class _MerchantPageState extends State<MerchantPage> {
                               height: 48,
                               width: 162,
                               child: RaisedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  saveMerchantId();
+                                  showModalBottomSheet(
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20)),
+                                      backgroundColor: Colors.white,
+                                      context: context,
+                                      builder: (context) => MakePaymentModal());
+                                },
                                 color: Color(0xff3a91ec),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -222,5 +235,13 @@ class _MerchantPageState extends State<MerchantPage> {
         ),
       ),
     );
+  }
+
+  saveMerchantId() async {
+    SharedPreferences prefs =
+        await SharedPreferences.getInstance(); //get instance of app memory
+    final merchantkey = 'merchantid';
+    //save keys in memory
+    prefs.setString(merchantkey, this.widget.merchantId);
   }
 }

@@ -1,15 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:userfront/widgets/merchant_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'makepaymet_sheet.dart';
 
 class MerchantCard extends StatelessWidget {
   final List<dynamic> src;
+  final String merchantId;
   final String merchantShopName;
   final String merchantName;
   final String merchantAddress;
   final String merchantCategory;
   MerchantCard(
       {this.src,
+      this.merchantId,
       this.merchantShopName,
       this.merchantName,
       this.merchantAddress,
@@ -45,6 +49,7 @@ class MerchantCard extends StatelessWidget {
                   MaterialPageRoute(
                       builder: (context) => MerchantPage(
                             src: src,
+                            merchantId: merchantId,
                             merchantName: merchantName,
                             merchantAddress: merchantAddress,
                             merchantShopName: merchantShopName,
@@ -80,7 +85,15 @@ class MerchantCard extends StatelessWidget {
               decoration: BoxDecoration(
                   border: Border(top: BorderSide(color: Colors.grey[200]))),
               child: FlatButton(
-                onPressed: () {},
+                onPressed: () {
+                  saveMerchantId();
+                  showModalBottomSheet(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                      backgroundColor: Colors.white,
+                      context: context,
+                      builder: (context) => MakePaymentModal());
+                },
                 child: Row(
                   children: <Widget>[
                     Icon(
@@ -97,5 +110,13 @@ class MerchantCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  saveMerchantId() async {
+    SharedPreferences prefs =
+        await SharedPreferences.getInstance(); //get instance of app memory
+    final merchantkey = 'merchantid';
+    //save keys in memory
+    prefs.setString(merchantkey, merchantId);
   }
 }

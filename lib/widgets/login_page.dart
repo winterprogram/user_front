@@ -181,6 +181,7 @@ class _LoginState extends State<Login> {
         print('this is click login');
         print(value);
       });
+      return;
     });
   }
 
@@ -211,9 +212,10 @@ class _LoginState extends State<Login> {
         );
         Future.delayed(const Duration(milliseconds: 500), () {
           setState(() {
-            Navigator.push(
+            Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => Navigation()),
+              (Route<dynamic> route) => false,
             );
           });
         });

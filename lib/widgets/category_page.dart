@@ -255,10 +255,12 @@ class _CategoryState extends State<Category> {
         'message': message,
         'distinct_id': m.id
       });
+
       result.then((value) {
         print('this is click signup');
         print(value);
       });
+      return;
     });
   }
 
@@ -281,6 +283,7 @@ class _CategoryState extends State<Category> {
         print('this is signup profile');
         print(value);
       });
+      return;
     });
   }
 }
