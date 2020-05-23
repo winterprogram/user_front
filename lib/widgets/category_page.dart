@@ -190,7 +190,7 @@ class _CategoryState extends State<Category> {
         }),
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
-      String status = json.decode(body)['status'];
+      String status = json.decode(body)['message'];
 
       if (status == 'user registered') {
         signup(true, status);
