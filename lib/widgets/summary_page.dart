@@ -1,12 +1,77 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/razorpay.dart';
 
 class Summary extends StatefulWidget {
+  String userid;
+  String merchantid;
+  final double amount;
+  final String couponcode;
+  final double discount;
+  final double faltdiscountupto;
+  @override
+  Summary(
+      {this.amount,
+      this.couponcode,
+      this.discount,
+      this.faltdiscountupto,
+      this.merchantid,
+      this.userid});
   @override
   _SummaryState createState() => _SummaryState();
 }
 
 class _SummaryState extends State<Summary> {
+  MixPanel mix = MixPanel();
+  double amount;
+  String couponcode;
+  double discount;
+  double faltdiscountupto;
+  double coupondiscount;
+  int conveniencefee;
+  double total;
+  RazorPay r;
+  String userid;
+  String merchantid;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    amount = this.widget.amount;
+    couponcode = this.widget.couponcode;
+    discount = this.widget.discount;
+    faltdiscountupto = this.widget.faltdiscountupto;
+    print(couponcode);
+    if (couponcode != '') {
+      if (amount * discount / 100 < faltdiscountupto) {
+        coupondiscount = amount * (discount) / 100;
+      } else {
+        coupondiscount = faltdiscountupto;
+      }
+      total = amount - coupondiscount;
+    } else {
+      total = amount;
+      coupondiscount = 0;
+    }
+    conveniencefee = (calculateConvenience(0.02 * total)).round();
+    total += conveniencefee;
+    userid = this.widget.userid;
+    merchantid = this.widget.merchantid;
+    r = RazorPay(
+        context: context,
+        amount: total,
+        userid: userid,
+        merchantid: merchantid);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    r.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,9 +79,11 @@ class _SummaryState extends State<Summary> {
         child: Stack(
           children: <Widget>[
             Positioned(
-                right: 0,
-                child:
-                    Container(child: Image.asset('images/green-circle.png'))),
+              right: 0,
+              child: Container(
+                child: Image.asset('images/green-circle.png'),
+              ),
+            ),
             Container(
               child: Column(
                 mainAxisSize: MainAxisSize.max,
@@ -61,7 +128,28 @@ class _SummaryState extends State<Summary> {
                                       color: Color(0xff293340), fontSize: 15),
                                 ),
                                 Text(
-                                  'Rs.500',
+                                  'Rs. $amount',
+                                  style: TextStyle(
+                                      color: Color(0xff293340),
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                EdgeInsets.only(left: 24, top: 19, right: 24),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                Text(
+                                  'Convenience Fee',
+                                  style: TextStyle(
+                                      color: Color(0xff293340), fontSize: 15),
+                                ),
+                                Text(
+                                  'Rs. $conveniencefee',
                                   style: TextStyle(
                                       color: Color(0xff293340),
                                       fontSize: 17,
@@ -82,7 +170,7 @@ class _SummaryState extends State<Summary> {
                                       color: Color(0xff293340), fontSize: 15),
                                 ),
                                 Text(
-                                  'Rs.30',
+                                  '$coupondiscount',
                                   style: TextStyle(
                                       color: Color(0xff26C8A8),
                                       fontSize: 17,
@@ -104,7 +192,7 @@ class _SummaryState extends State<Summary> {
                                 height: 33,
                                 color: Color(0xff37c898).withOpacity(0.05),
                                 child: Center(
-                                  child: Text('TVHSBC40',
+                                  child: Text('$couponcode',
                                       style: TextStyle(
                                           color: Color(0xff1ea896),
                                           fontSize: 14,
@@ -135,7 +223,7 @@ class _SummaryState extends State<Summary> {
                                       MainAxisAlignment.spaceBetween,
                                   children: <Widget>[
                                     Text(
-                                      'Rs.470',
+                                      'Rs. $total',
                                       style: TextStyle(
                                           fontWeight: FontWeight.w600,
                                           fontSize: 20,
@@ -145,7 +233,17 @@ class _SummaryState extends State<Summary> {
                                       height: 48,
                                       width: 169,
                                       child: RaisedButton(
-                                        onPressed: () {},
+                                        onPressed: () async {
+                                          onClick('MakePayment');
+                                          await r.checkout();
+                                          /*Navigator.pushAndRemoveUntil(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    Navigation()),
+                                            (Route<dynamic> route) => false,
+                                          );*/
+                                        },
                                         color: Color(0xff3a91ec),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -190,5 +288,26 @@ class _SummaryState extends State<Summary> {
         ),
       ),
     );
+  }
+
+  onClick(String button) async {
+    mix.id = await mix.createMixPanel().then((_) {
+      var result = mix.mixpanelAnalytics.track(
+          event: 'onClickSummaryPage',
+          properties: {'button': button, 'distinct_id': mix.id});
+      result.then((value) {
+        print('this is click login');
+        print(value);
+      });
+      return;
+    });
+  }
+
+  calculateConvenience(double convenience) {
+    if (convenience < 0.1) {
+      return convenience;
+    } else {
+      return convenience + calculateConvenience(0.02 * convenience);
+    }
   }
 }

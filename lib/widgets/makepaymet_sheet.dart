@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:userfront/models/Mixpanel.dart';
 
 import 'coupon_page.dart';
 
@@ -9,9 +10,10 @@ class MakePaymentModal extends StatefulWidget {
 }
 
 class _MakePaymentModalState extends State<MakePaymentModal> {
+  MixPanel mix = MixPanel();
   bool _autoValidate = false;
   final _formKey = GlobalKey<FormState>();
-  int amount;
+  double amount;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -63,7 +65,7 @@ class _MakePaymentModalState extends State<MakePaymentModal> {
                           width: 50,
                           child: TextFormField(
                             onSaved: (String value) {
-                              amount = int.parse(value);
+                              amount = double.parse(value);
                             },
                             validator: (value) =>
                                 value.length == 0 ? 'Enter Amount' : null,
@@ -106,10 +108,11 @@ class _MakePaymentModalState extends State<MakePaymentModal> {
 //    If all data are correct then save data to out variables
                             _formKey.currentState.save();
                             print(amount);
+                            confirmAmount(amount);
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => Coupon()));
+                                    builder: (context) => Coupon(amount)));
                           } else {
                             setState(() {
                               _autoValidate = true;
@@ -129,5 +132,18 @@ class _MakePaymentModalState extends State<MakePaymentModal> {
         ),
       ]),
     );
+  }
+
+  confirmAmount(double amounts) async {
+    mix.id = await mix.createMixPanel().then((_) {
+      var result = mix.mixpanelAnalytics.track(
+          event: 'amountLogin',
+          properties: {'amount': amounts, 'distinct_id': mix.id});
+      result.then((value) {
+        print('this is click login');
+        print(value);
+      });
+      return;
+    });
   }
 }

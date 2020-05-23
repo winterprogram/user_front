@@ -12,10 +12,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:userfront/models/merchant.dart';
 import 'package:userfront/widgets/constants.dart';
+import 'package:userfront/widgets/map_page.dart';
 import 'package:userfront/widgets/merchant_card.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:app_settings/app_settings.dart';
 import 'custom_dialog.dart';
+import 'package:userfront/models/Mixpanel.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -23,6 +25,7 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  MixPanel mix = MixPanel();
   final PermissionHandler permissionHandler = PermissionHandler();
   Map<PermissionGroup, PermissionStatus> permissions;
   static const platformMethodChannel = const MethodChannel('merchant/getGPS');
@@ -44,27 +47,15 @@ class _DashboardState extends State<Dashboard> {
         print(value);
         if (value == true) {
           _getLocation().then((position) {
+            if (!mounted) {
+              return;
+            }
             setState(() {
               userLocation = position;
-              getLocationCity(userLocation).then((place) {
-                setState(() {
-                  placemark = place;
-                  sublocality = placemark[0].subLocality;
-                  city = placemark[0].locality;
-                  locationtoprint = sublocality + ', ' + city;
-                });
-                getMerchantShops(userLocation, city).then((value) {
-                  setState(() {
-                    if (value == null) {
-                    } else {
-                      status = 'Loaded';
-                      print(status);
-                      items = value;
-                      print(items.length);
-                    }
-                  });
-                });
-              });
+
+              //userLocation =
+              //  Position(latitude: 29.474045, longitude: 77.695810);
+              setLocation();
             });
           });
         }
@@ -114,7 +105,20 @@ class _DashboardState extends State<Dashboard> {
                               style: TextStyle(
                                   fontSize: 18, color: Color(0xff426ed9)),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              onTapChangeLocation(locationtoprint);
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => MapPage(
+                                            userLocation: userLocation,
+                                          ))).then((value) {
+                                setState(() {
+                                  userLocation = value;
+                                  setLocation();
+                                });
+                              });
+                            },
                           ),
                         ],
                       ),
@@ -220,16 +224,25 @@ class _DashboardState extends State<Dashboard> {
                                 )
                               ],
                             );
-                          } else if (status == 'no shops found') {
-                            return Container();
                           } else {
                             if (index == 0) {
+                              print(status);
+                              return Container(
+                                color: Colors.orange,
+                                height: 200,
+                              );
+                            }
+                            if (status == 'no shops found') {
+                              print('hi');
                               return Column(
                                 children: <Widget>[
                                   Container(
-                                    color: Colors.orange,
-                                    height: 200,
+                                    child: Text('No shops found near you.'),
                                   ),
+                                  Container(
+                                    height: 150,
+                                    color: Colors.grey,
+                                  )
                                 ],
                               );
                             } else if (status == 'Loaded') {
@@ -276,6 +289,8 @@ class _DashboardState extends State<Dashboard> {
   int calclulateItemsLength() {
     if (status == 'Loading') {
       return 1;
+    } else if (status == 'no shops found') {
+      return 2;
     } else {
       return items.length + 1;
     }
@@ -319,9 +334,16 @@ class _DashboardState extends State<Dashboard> {
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
       // print('this is body');
-      //print(body);
-      if (response.statusCode == 200) {
+      print(body);
+      String resstatus = json.decode(body)['message'];
+      print(resstatus);
+      fetchMerchant(resstatus);
+      if (resstatus == 'user fetched') {
         return json.decode(body)['data'];
+      } else if (resstatus == 'no merchant found near your location') {
+        setState(() {
+          status = 'no shops found';
+        });
       } else {
         Toast.show(
           "Some error occurred",
@@ -391,7 +413,15 @@ class _DashboardState extends State<Dashboard> {
       showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
+            return AlertDialog(    } else if (status == 'no shops found') {
+                              return Column(
+                                children: <Widget>[
+                                  Container(
+                                    child: Text('No shops found near you.'),
+                                  ),
+                                  Container(
+                                    height: 150,
+                                    color: Colors
               title: Text("Can't get gurrent location"),
               content: const Text(
                   'Please make sure you enable GPS and set location mode to High accruacy and try again'),
@@ -415,7 +445,6 @@ class _DashboardState extends State<Dashboard> {
     String _message;
     try {
       final String result = await platformMethodChannel.invokeMethod('getGPS');
-      print('here');
       _message = result;
       print('this is _message' + _message);
       if (_message == 'false') {
@@ -424,12 +453,69 @@ class _DashboardState extends State<Dashboard> {
         });
         print('this is _checkGps ' + _message);
       } else {
-        print('i am here');
         return true;
       }
     } on PlatformException catch (e) {
       _message = "Can't do native stuff ${e.message}.";
     }
     return true;
+  }
+
+  void setLocation() {
+    getLocationCity(userLocation).then((place) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        placemark = place;
+        sublocality = placemark[0].subLocality;
+        city = placemark[0].locality;
+        locationtoprint = sublocality + ', ' + city;
+      });
+      getMerchantShops(userLocation, city).then((value) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          if (value == null) {
+          } else {
+            status = 'Loaded';
+            print(status);
+            items = value;
+            print(items.length);
+          }
+        });
+      });
+    });
+  }
+
+  fetchMerchant(String message) async {
+    mix.id = await mix.createMixPanel().then((_) {
+      var result = mix.mixpanelAnalytics.track(
+          event: 'fetchMerchant',
+          properties: {'message': message, 'distinct_id': mix.id});
+      result.then((value) {
+        print('this is click login');
+        print(value);
+      });
+      return;
+    });
+  }
+
+  onTapChangeLocation(String location) async {
+    mix.id = await mix.createMixPanel().then((_) {
+      var result = mix.mixpanelAnalytics.track(
+          event: 'onClickDashboard',
+          properties: {
+            'current': location,
+            'button': 'ChangeLocation',
+            'distinct_id': mix.id
+          });
+      result.then((value) {
+        print('this is click login');
+        print(value);
+      });
+      return;
+    });
   }
 }

@@ -7,29 +7,40 @@ import 'dart:io';
 import 'package:toast/toast.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/widgets/summary_page.dart';
 import 'constants.dart';
 import 'package:shimmer/shimmer.dart';
 
 class Coupon extends StatefulWidget {
+  final double amount;
+  @override
+  Coupon(this.amount);
   @override
   _CouponState createState() => _CouponState();
 }
 
 class _CouponState extends State<Coupon> {
+  MixPanel mix = MixPanel();
+  String userid;
+  String merchantid;
+  double amount;
   final _controller = TextEditingController();
-  String couponinitial = 'hi';
+  String couponinitial;
   bool _autoValidate = false;
   final _formKey = GlobalKey<FormState>();
   Position userLocation;
   String couponcode;
   String status = 'Loading';
   List coupons = List();
+  double discount;
+  double faltdiscountupto;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    amount = this.widget.amount;
     getCoupons().then((value) {
       setState(() {
         if (value != null) {
@@ -71,6 +82,7 @@ class _CouponState extends State<Coupon> {
                   style: TextStyle(
                     fontSize: 27,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xff293340),
                   ),
                 ),
               ),
@@ -102,11 +114,21 @@ class _CouponState extends State<Coupon> {
                                     BorderRadius.all(Radius.circular(24))),
                             child: IconButton(
                               onPressed: () {
-                                print('hi');
+                                onTapCoupon(
+                                    _controller.text, 'ForwardCouponSelect');
+                                print(_controller.text);
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => Summary()));
+                                        builder: (context) => Summary(
+                                              amount: amount,
+                                              couponcode: _controller.text,
+                                              discount: discount,
+                                              faltdiscountupto:
+                                                  faltdiscountupto,
+                                              merchantid: merchantid,
+                                              userid: userid,
+                                            )));
                               },
                               icon: Icon(
                                 Icons.arrow_forward,
@@ -227,8 +249,16 @@ class _CouponState extends State<Coupon> {
                           } else if (status == 'Loaded') {
                             return GestureDetector(
                               onTap: () {
+                                onTapCoupon(
+                                    coupons[index]['couponcode'], 'couponcard');
                                 setState(() {
-                                  _controller.text = coupons[0]['couponcode'];
+                                  _controller.text =
+                                      coupons[index]['couponcode'];
+                                  discount =
+                                      double.parse(coupons[index]['discount']);
+                                  faltdiscountupto = double.parse(
+                                      coupons[index]['faltdiscountupto']);
+
                                   print(couponinitial);
                                 });
                               },
@@ -318,8 +348,8 @@ class _CouponState extends State<Coupon> {
         await SharedPreferences.getInstance(); //get instance of app memory
     final userkey = 'userid';
     final merchantkey = 'merchantid';
-    String userid = prefs.getString(userkey);
-    String merchantid = prefs.getString(merchantkey);
+    userid = prefs.getString(userkey);
+    merchantid = prefs.getString(merchantkey);
     print(merchantid);
     print(userid);
     try {
@@ -332,7 +362,8 @@ class _CouponState extends State<Coupon> {
         },
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
-      String message = json.decode(body)['status'];
+      String message = json.decode(body)['message'];
+      onFetchCoupon(message);
       //print(body);
       if (message == 'coupon for user fetched') {
         //print(body);
@@ -375,5 +406,35 @@ class _CouponState extends State<Coupon> {
         backgroundColor: Colors.red[200],
       );
     }
+  }
+
+  onFetchCoupon(String message) async {
+    mix.id = await mix.createMixPanel().then((_) {
+      var result = mix.mixpanelAnalytics.track(
+          event: 'fetchCoupon',
+          properties: {'message': message, 'distinct_id': mix.id});
+      result.then((value) {
+        print('this is click login');
+        print(value);
+      });
+      return;
+    });
+  }
+
+  onTapCoupon(String couponCode, String button) async {
+    mix.id = await mix.createMixPanel().then((_) {
+      var result = mix.mixpanelAnalytics.track(
+          event: 'onClickCouponPage',
+          properties: {
+            'coupon': couponCode,
+            'button': button,
+            'distinct_id': mix.id
+          });
+      result.then((value) {
+        print('this is click login');
+        print(value);
+      });
+      return;
+    });
   }
 }

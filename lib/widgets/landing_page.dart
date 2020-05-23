@@ -9,10 +9,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info/device_info.dart';
 import 'package:mixpanel_analytics/mixpanel_analytics.dart';
 import 'package:userfront/models/Mixpanel.dart';
-import 'package:userfront/widgets/razorpay.dart';
 import 'package:userfront/widgets/signup_page.dart';
 import 'package:userfront/widgets/login_page.dart';
-import 'navigation_page.dart';
 
 // landing page
 class LandingPage extends StatefulWidget {
@@ -21,23 +19,14 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  RazorPay r;
   MixPanel m = MixPanel();
 
   final PermissionHandler permissionHandler = PermissionHandler();
   Map<PermissionGroup, PermissionStatus> permissions;
-  static const platformMethodChannel = const MethodChannel('merchant/getGPS');
   @override
   void initState() {
     super.initState();
     checkfirstLogin();
-    r = RazorPay(context: context);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    r.clear();
   }
 
   signup(BuildContext context) async {
@@ -48,8 +37,7 @@ class _LandingPageState extends State<LandingPage> {
       MaterialPageRoute(builder: (context) => SignUp()),
     );
     if (result == true) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => Navigation()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => Login()));
     }
   }
 
@@ -84,7 +72,6 @@ class _LandingPageState extends State<LandingPage> {
                       ),
                       child: Text('Login', style: TextStyle(fontSize: 15)),
                       onPressed: () {
-                        //r.checkout(20);
                         onClickLandingPage('Login');
                         Navigator.push(
                           context,

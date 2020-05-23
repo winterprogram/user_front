@@ -198,7 +198,7 @@ class _LoginState extends State<Login> {
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
       print(body);
-      String status = json.decode(body)['message'];
+      String status = json.decode(body)['status'];
       if (status == 'successful login') {
         save(json.decode(body)['data']['userid']);
         login(true, json.decode(body)['data']['userid'], status);

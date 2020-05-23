@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/widgets/image_picker.dart';
 
 import 'makepaymet_sheet.dart';
@@ -25,6 +26,7 @@ class MerchantPage extends StatefulWidget {
 }
 
 class _MerchantPageState extends State<MerchantPage> {
+  MixPanel mix = MixPanel();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,6 +51,7 @@ class _MerchantPageState extends State<MerchantPage> {
                                   const EdgeInsets.symmetric(horizontal: 2.0),
                               child: GestureDetector(
                                 onTap: () {
+                                  onClick('image');
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -178,6 +181,7 @@ class _MerchantPageState extends State<MerchantPage> {
                               width: 162,
                               child: RaisedButton(
                                 onPressed: () {
+                                  onClick('MakePayment');
                                   saveMerchantId();
                                   showModalBottomSheet(
                                       shape: RoundedRectangleBorder(
@@ -235,6 +239,18 @@ class _MerchantPageState extends State<MerchantPage> {
         ),
       ),
     );
+  }
+
+  onClick(String button) async {
+    mix.id = await mix.createMixPanel().then((_) {
+      var result = mix.mixpanelAnalytics.track(
+          event: 'onClickMerchantPage',
+          properties: {'button': button, 'distinct_id': mix.id});
+      result.then((value) {
+        print(value);
+      });
+      return;
+    });
   }
 
   saveMerchantId() async {

@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/widgets/merchant_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'makepaymet_sheet.dart';
 
 class MerchantCard extends StatelessWidget {
+  MixPanel mix = MixPanel();
   final List<dynamic> src;
   final String merchantId;
   final String merchantShopName;
@@ -44,6 +46,7 @@ class MerchantCard extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () {
+              onTapMerchantCard(merchantId, 'MerchantCard');
               Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -86,6 +89,7 @@ class MerchantCard extends StatelessWidget {
                   border: Border(top: BorderSide(color: Colors.grey[200]))),
               child: FlatButton(
                 onPressed: () {
+                  onTapMerchantCard(merchantId, 'MakePayment');
                   saveMerchantId();
                   showModalBottomSheet(
                       shape: RoundedRectangleBorder(
@@ -118,5 +122,20 @@ class MerchantCard extends StatelessWidget {
     final merchantkey = 'merchantid';
     //save keys in memory
     prefs.setString(merchantkey, merchantId);
+  }
+
+  onTapMerchantCard(String merchantid, String button) async {
+    mix.id = await mix.createMixPanel().then((_) {
+      var result = mix.mixpanelAnalytics.track(event: 'onClick', properties: {
+        'button': button,
+        'merchantid': merchantid,
+        'distinct_id': mix.id
+      });
+      result.then((value) {
+        print('this is click login');
+        print(value);
+      });
+      return;
+    });
   }
 }
