@@ -38,7 +38,6 @@ class _CouponState extends State<Coupon> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     amount = this.widget.amount;
     getCoupons().then((value) {

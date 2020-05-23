@@ -29,7 +29,6 @@ class _MapPageState extends State<MapPage> {
   var location = new Location();
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     userLocation = widget.userLocation;
     BitmapDescriptor.fromAssetImage(
@@ -49,7 +48,6 @@ class _MapPageState extends State<MapPage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     locationSubscription.cancel();
     super.dispose();
   }

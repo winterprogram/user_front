@@ -4,8 +4,8 @@ import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/widgets/razorpay.dart';
 
 class Summary extends StatefulWidget {
-  String userid;
-  String merchantid;
+  final String userid;
+  final String merchantid;
   final double amount;
   final String couponcode;
   final double discount;
@@ -37,7 +37,6 @@ class _SummaryState extends State<Summary> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     amount = this.widget.amount;
     couponcode = this.widget.couponcode;

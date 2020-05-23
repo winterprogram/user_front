@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/widgets/image_picker.dart';
-
+import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'makepaymet_sheet.dart';
 
 class MerchantPage extends StatefulWidget {
@@ -28,58 +28,66 @@ class MerchantPage extends StatefulWidget {
 class _MerchantPageState extends State<MerchantPage> {
   MixPanel mix = MixPanel();
   @override
+  void initState() {
+    super.initState();
+    FacebookAudienceNetwork.init();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Container(
-          color: Colors.white,
-          child: Stack(
-            children: <Widget>[
-              Container(
-                color: Colors.white,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Container(
-                      height: 242,
-                      child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: widget.src.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2.0),
-                              child: GestureDetector(
-                                onTap: () {
-                                  onClick('image');
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              GalleryPhotoViewWrapper(
-                                                url: widget.src,
-                                                initialIndex: index,
-                                                scrollDirection:
-                                                    Axis.horizontal,
-                                                backgroundDecoration:
-                                                    const BoxDecoration(
-                                                  color: Colors.white,
-                                                ),
-                                              )));
-                                },
-                                child: Container(
-                                    decoration: BoxDecoration(
-                                        border:
-                                            Border.all(color: Colors.black)),
-                                    width: 280,
-                                    child: Image.network(widget.src[index])),
-                              ),
-                            );
-                          }),
-                    ),
-                    ListView(
-                      shrinkWrap: true,
+        child: Expanded(
+          child: Container(
+            color: Colors.white,
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
+                        Container(
+                          height: 242,
+                          child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: widget.src.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 2.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      onClick('image');
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  GalleryPhotoViewWrapper(
+                                                    url: widget.src,
+                                                    initialIndex: index,
+                                                    scrollDirection:
+                                                        Axis.horizontal,
+                                                    backgroundDecoration:
+                                                        const BoxDecoration(
+                                                      color: Colors.white,
+                                                    ),
+                                                  )));
+                                    },
+                                    child: Container(
+                                        decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: Colors.black)),
+                                        width: 280,
+                                        child:
+                                            Image.network(widget.src[index])),
+                                  ),
+                                );
+                              }),
+                        ),
                         Padding(
                           padding: const EdgeInsets.only(top: 18, left: 24.0),
                           child: Text(
@@ -217,24 +225,46 @@ class _MerchantPageState extends State<MerchantPage> {
                               ),
                             ),
                           ),
-                        )
+                        ),
+                        SizedBox(height: 20),
+                        Expanded(
+                          child: Container(
+                            color: Colors.grey[300],
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 5),
+                            child: FacebookNativeAd(
+                              placementId: "3013166852096438_3013315605414896",
+                              adType: NativeAdType.NATIVE_AD,
+                              width: double.infinity,
+                              backgroundColor: Colors.white,
+                              titleColor: Colors.black,
+                              descriptionColor: Colors.black,
+                              buttonColor: Color(0xff426ed9),
+                              buttonTitleColor: Colors.white,
+                              buttonBorderColor: Colors.white,
+                              listener: (result, value) {
+                                print("Native Ad: $result --> $value");
+                              },
+                            ),
+                          ),
+                        ),
                       ],
-                    )
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment(-1, -1),
-                child: IconButton(
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: Colors.black,
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    }),
-              ),
-            ],
+                  ),
+                ),
+                Container(
+                  alignment: Alignment(-1, -1),
+                  child: IconButton(
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: Colors.black,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      }),
+                ),
+              ],
+            ),
           ),
         ),
       ),

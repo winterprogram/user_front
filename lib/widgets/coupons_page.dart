@@ -21,7 +21,6 @@ class _CouponsState extends State<Coupons> {
   List coupons = List();
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     getCoupons().then((value) {
       setState(() {

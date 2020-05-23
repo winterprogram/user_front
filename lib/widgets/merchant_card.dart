@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'makepaymet_sheet.dart';
 
 class MerchantCard extends StatelessWidget {
-  MixPanel mix = MixPanel();
+  final BuildContext ctx;
+  final MixPanel mix = MixPanel();
   final List<dynamic> src;
   final String merchantId;
   final String merchantShopName;
@@ -14,7 +15,8 @@ class MerchantCard extends StatelessWidget {
   final String merchantAddress;
   final String merchantCategory;
   MerchantCard(
-      {this.src,
+      {this.ctx,
+      this.src,
       this.merchantId,
       this.merchantShopName,
       this.merchantName,
@@ -48,9 +50,9 @@ class MerchantCard extends StatelessWidget {
             onTap: () {
               onTapMerchantCard(merchantId, 'MerchantCard');
               Navigator.push(
-                  context,
+                  ctx,
                   MaterialPageRoute(
-                      builder: (context) => MerchantPage(
+                      builder: (ctx) => MerchantPage(
                             src: src,
                             merchantId: merchantId,
                             merchantName: merchantName,

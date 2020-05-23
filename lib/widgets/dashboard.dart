@@ -18,6 +18,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:app_settings/app_settings.dart';
 import 'custom_dialog.dart';
 import 'package:userfront/models/Mixpanel.dart';
+import 'package:facebook_audience_network/facebook_audience_network.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -41,6 +42,8 @@ class _DashboardState extends State<Dashboard> {
   @override
   void initState() {
     super.initState();
+    FacebookAudienceNetwork.init();
+
     print(status);
     requestLocationPermission().then((value) {
       _getGPS().then((value) {
@@ -246,6 +249,26 @@ class _DashboardState extends State<Dashboard> {
                                 ],
                               );
                             } else if (status == 'Loaded') {
+                              if (index % 4 == 0) {
+                                return Container(
+                                    child: FacebookNativeAd(
+                                  placementId:
+                                      "3013166852096438_3013234258756364",
+                                  adType: NativeAdType.NATIVE_BANNER_AD,
+                                  bannerAdSize: NativeBannerAdSize.HEIGHT_100,
+                                  width: double.infinity,
+                                  backgroundColor: Colors.white,
+                                  titleColor: Colors.black,
+                                  descriptionColor: Colors.black,
+                                  buttonColor: Color(0xff426ed9),
+                                  buttonTitleColor: Colors.white,
+                                  buttonBorderColor: Colors.white,
+                                  listener: (result, value) {
+                                    print(
+                                        "Native Banner Ad: $result --> $value");
+                                  },
+                                ));
+                              }
                               return Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8.0),
@@ -254,6 +277,7 @@ class _DashboardState extends State<Dashboard> {
                                       CrossAxisAlignment.stretch,
                                   children: <Widget>[
                                     MerchantCard(
+                                      ctx: context,
                                       src: items[index - 1]['imageurl'],
                                       merchantShopName: items[index - 1]
                                           ['shopname'],
