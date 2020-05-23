@@ -353,7 +353,7 @@ class _DashboardState extends State<Dashboard> {
           'Content-Type': 'application/json',
           'userlatitude': latitude,
           'userlongitude': longitude,
-          'city': 'Thane',
+          'city': city,
         },
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
