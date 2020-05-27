@@ -37,6 +37,10 @@ dev_dependencies:
   facebook_audience_network: ^0.5.0
   maps_launcher: ^1.2.0
   url_launcher: ^5.4.10
+  firebase_core: ^0.4.5
+  firebase_auth: ^0.16.1
+  cloud_firestore: ^0.13.6
+  firebase_messaging: ^6.0.16
 
 flutter:
   uses-material-design: true

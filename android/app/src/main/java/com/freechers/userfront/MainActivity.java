@@ -1,4 +1,4 @@
-package com.example.userfront;
+package com.freechers.userfront;
 
 import android.location.LocationManager;
 import androidx.annotation.NonNull;
