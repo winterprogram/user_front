@@ -109,6 +109,7 @@ class _DashboardState extends State<Dashboard> {
                                   fontSize: 18, color: Color(0xff426ed9)),
                             ),
                             onPressed: () {
+                              print(userLocation);
                               onTapChangeLocation(locationtoprint);
                               Navigator.push(
                                   context,
@@ -117,8 +118,13 @@ class _DashboardState extends State<Dashboard> {
                                             userLocation: userLocation,
                                           ))).then((value) {
                                 setState(() {
-                                  userLocation = value;
-                                  setLocation();
+                                  print('This is userLocation');
+                                  print(userLocation);
+                                  if (value != null) {
+                                    print('inside');
+                                    userLocation = value;
+                                    setLocation();
+                                  }
                                 });
                               });
                             },
@@ -287,6 +293,11 @@ class _DashboardState extends State<Dashboard> {
                                           ['category'],
                                       merchantId: items[index - 1]
                                           ['merchantid'],
+                                      latitude: double.parse(
+                                          items[index - 1]['latitude']),
+                                      longitude: double.parse(
+                                          items[index - 1]['longitude']),
+                                      mobile: items[index - 1]['mobilenumber'],
                                     )
                                   ],
                                 ),
@@ -353,18 +364,19 @@ class _DashboardState extends State<Dashboard> {
           'Content-Type': 'application/json',
           'userlatitude': latitude,
           'userlongitude': longitude,
-          'city': city,
+          'city': 'Thane',
         },
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
       // print('this is body');
       print(body);
       String resstatus = json.decode(body)['message'];
+      int code = json.decode(body)['status'];
       print(resstatus);
       fetchMerchant(resstatus);
-      if (resstatus == 'user fetched') {
+      if (code == 200) {
         return json.decode(body)['data'];
-      } else if (resstatus == 'no merchant found near your location') {
+      } else if (code == 500) {
         setState(() {
           status = 'no shops found';
         });

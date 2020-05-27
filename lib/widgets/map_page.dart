@@ -238,6 +238,9 @@ class _MapPageState extends State<MapPage> {
 
   _handleTap(LatLng point) {
     onClickMap();
+    if (!mounted) {
+      return;
+    }
     setState(() {
       userLocation =
           Position(latitude: point.latitude, longitude: point.longitude);

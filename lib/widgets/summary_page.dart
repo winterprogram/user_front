@@ -62,7 +62,8 @@ class _SummaryState extends State<Summary> {
         context: context,
         amount: total,
         userid: userid,
-        merchantid: merchantid);
+        merchantid: merchantid,
+        couponcode: couponcode);
   }
 
   @override
@@ -157,49 +158,8 @@ class _SummaryState extends State<Summary> {
                               ],
                             ),
                           ),
-                          Padding(
-                            padding:
-                                EdgeInsets.only(left: 24, top: 19, right: 24),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Text(
-                                  'Coupon Discount',
-                                  style: TextStyle(
-                                      color: Color(0xff293340), fontSize: 15),
-                                ),
-                                Text(
-                                  '$coupondiscount',
-                                  style: TextStyle(
-                                      color: Color(0xff26C8A8),
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 24, top: 24, right: 24),
-                            child: DottedBorder(
-                              dashPattern: [6, 3],
-                              borderType: BorderType.RRect,
-                              radius: Radius.circular(6),
-                              padding: EdgeInsets.all(0),
-                              color: Color(0xff37c898).withOpacity(0.5),
-                              child: Container(
-                                height: 33,
-                                color: Color(0xff37c898).withOpacity(0.05),
-                                child: Center(
-                                  child: Text('$couponcode',
-                                      style: TextStyle(
-                                          color: Color(0xff1ea896),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500)),
-                                ),
-                              ),
-                            ),
-                          ),
+                          showCouponDiscount(),
+                          showCouponBox(),
                         ],
                       ),
                     ],
@@ -307,6 +267,60 @@ class _SummaryState extends State<Summary> {
       return convenience;
     } else {
       return convenience + calculateConvenience(0.02 * convenience);
+    }
+  }
+
+  showCouponDiscount() {
+    if (couponcode != '') {
+      return Padding(
+        padding: EdgeInsets.only(left: 24, top: 19, right: 24),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              'Coupon Discount',
+              style: TextStyle(color: Color(0xff293340), fontSize: 15),
+            ),
+            Text(
+              '$coupondiscount',
+              style: TextStyle(
+                  color: Color(0xff26C8A8),
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return SizedBox();
+    }
+  }
+
+  showCouponBox() {
+    if (couponcode != '') {
+      return Padding(
+        padding: const EdgeInsets.only(left: 24, top: 24, right: 24),
+        child: DottedBorder(
+          dashPattern: [6, 3],
+          borderType: BorderType.RRect,
+          radius: Radius.circular(6),
+          padding: EdgeInsets.all(0),
+          color: Color(0xff37c898).withOpacity(0.5),
+          child: Container(
+            height: 33,
+            color: Color(0xff37c898).withOpacity(0.05),
+            child: Center(
+              child: Text('$couponcode',
+                  style: TextStyle(
+                      color: Color(0xff1ea896),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500)),
+            ),
+          ),
+        ),
+      );
+    } else {
+      return SizedBox();
     }
   }
 }

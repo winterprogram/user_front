@@ -130,7 +130,7 @@ class _LoginState extends State<Login> {
 //    If all data are correct then save data to out variables
                                       _formKey.currentState.save();
                                       print(phone);
-                                      loginMerchant(context, phone, password);
+                                      loginUser(context, phone, password);
                                     } else {
                                       setState(() {
                                         _autoValidate = true;
@@ -185,7 +185,7 @@ class _LoginState extends State<Login> {
     });
   }
 
-  loginMerchant(BuildContext context, String mobile, String password) async {
+  loginUser(BuildContext context, String mobile, String password) async {
     print(password);
     try {
       Response response = await post(
@@ -197,10 +197,13 @@ class _LoginState extends State<Login> {
         }),
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
-      print(body);
+      var data = json.decode(body)['data']['userData'];
       String status = json.decode(body)['message'];
-      if (status == 'successful login') {
+      int code = json.decode(body)['status'];
+      if (code == 200) {
         save(json.decode(body)['data']['userid']);
+        saveDetails(
+            data['email'], data['fullname'], int.parse(data['mobilenumber']));
         login(true, json.decode(body)['data']['userid'], status);
         Toast.show(
           "Login Successful",
@@ -232,7 +235,6 @@ class _LoginState extends State<Login> {
       }
 
       //call saving keys function
-      print(body);
     } on TimeoutException catch (_) {
       Toast.show(
         "Check your internet connection",
@@ -256,12 +258,17 @@ class _LoginState extends State<Login> {
 
 //save keys function
   void save(String userid) async {
-    print(userid);
-    print('hi');
     prefs = await SharedPreferences.getInstance(); //get instance of app memory
     final userkey = 'userid';
     //save keys in memory
     prefs.setString(userkey, userid);
-    print(prefs.getString(userkey));
+  }
+
+  void saveDetails(String mail, String name, int mobile) async {
+    prefs = await SharedPreferences.getInstance(); //get instance of app memory
+    prefs.setString('mail', mail);
+    prefs.setString('name', name);
+    prefs.setInt('mobile', mobile);
+    print(prefs.getInt('mobile'));
   }
 }

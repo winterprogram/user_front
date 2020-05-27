@@ -8,8 +8,13 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:userfront/models/Mixpanel.dart';
 import 'constants.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RazorPay {
+  String couponcode;
+  Geolocator geolocator = Geolocator();
+  Position userLocation;
   MixPanel mix = MixPanel();
   String userid;
   String merchantid;
@@ -17,7 +22,12 @@ class RazorPay {
   Razorpay _razorpay;
   BuildContext context;
   String orderid;
-  RazorPay({this.context, this.amount, this.userid, this.merchantid}) {
+  RazorPay(
+      {this.context,
+      this.amount,
+      this.userid,
+      this.merchantid,
+      this.couponcode}) {
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
@@ -55,6 +65,13 @@ class RazorPay {
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
     payment('Success');
     passResult();
+    _getLocation().then((value) {
+      this.userLocation = value;
+      generateCoupon();
+    });
+    if (this.couponcode != '') {
+      redeemCoupon();
+    }
     Toast.show('Success', this.context);
   }
 
@@ -67,6 +84,110 @@ class RazorPay {
   void _handleExternalWallet(ExternalWalletResponse response) {
     payment('ExternalWallet');
     Toast.show('Externalwallet' + response.walletName, this.context);
+  }
+
+  Future redeemCoupon() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final merchantkey = 'merchantid';
+    merchantid = prefs.getString(merchantkey);
+    print(this.amount * 100);
+    try {
+      Response response =
+          await put(kurl + '/redeemCouponforUser', headers: <String, String>{
+        'Content-Type': 'application/json',
+        'userid': this.userid,
+        'merchantid': merchantid,
+        'couponcode': this.couponcode,
+      }).timeout(const Duration(seconds: 10));
+      String body = response.body;
+      int code = json.decode(body)['status'];
+      print(body);
+      if (code == 200) {
+        //print(body);
+        print('coupon redeemed');
+      } else {
+        Toast.show(
+          "Some error occurred",
+          context,
+          duration: 3,
+          gravity: Toast.BOTTOM,
+          textColor: Colors.black,
+          backgroundColor: Colors.red[200],
+        );
+      }
+
+      //call saving keys function
+    } on TimeoutException catch (_) {
+      Toast.show(
+        "Check your internet connection",
+        context,
+        duration: 3,
+        gravity: Toast.BOTTOM,
+        textColor: Colors.black,
+        backgroundColor: Colors.red[200],
+      );
+    } on SocketException catch (_) {
+      Toast.show(
+        "Check your internet connection",
+        context,
+        duration: 3,
+        gravity: Toast.BOTTOM,
+        textColor: Colors.black,
+        backgroundColor: Colors.red[200],
+      );
+    }
+  }
+
+  Future generateCoupon() async {
+    print(this.amount * 100);
+    try {
+      Response response =
+          await post(kurl + '/coupontouser', headers: <String, String>{
+        'Content-Type': 'application/json',
+        'userid': this.userid,
+        'userlatitude': this.userLocation.latitude.toString(),
+        'userlongitude': this.userLocation.longitude.toString(),
+        'amount_paid': this.amount.toString(),
+      }).timeout(const Duration(seconds: 10));
+      String body = response.body;
+      int code = json.decode(body)['status'];
+      print(body);
+      if (code == 200) {
+        //print(body);
+        print('Coupon generated');
+      } else if (code == 500) {
+        print('no merchant available');
+      } else {
+        Toast.show(
+          "Some error occurred",
+          context,
+          duration: 3,
+          gravity: Toast.BOTTOM,
+          textColor: Colors.black,
+          backgroundColor: Colors.red[200],
+        );
+      }
+
+      //call saving keys function
+    } on TimeoutException catch (_) {
+      Toast.show(
+        "Check your internet connection",
+        context,
+        duration: 3,
+        gravity: Toast.BOTTOM,
+        textColor: Colors.black,
+        backgroundColor: Colors.red[200],
+      );
+    } on SocketException catch (_) {
+      Toast.show(
+        "Check your internet connection",
+        context,
+        duration: 3,
+        gravity: Toast.BOTTOM,
+        textColor: Colors.black,
+        backgroundColor: Colors.red[200],
+      );
+    }
   }
 
   Future getOrderId() async {
@@ -83,12 +204,12 @@ class RazorPay {
           })).timeout(const Duration(seconds: 10));
       String body = response.body;
       String message = json.decode(body)['message'];
+      int code = json.decode(body)['status'];
       print(body);
       onFetchOrderId(message);
-      if (message == 'data saved for payments') {
+      if (code == 200) {
         //print(body);
         return json.decode(body)['data'];
-      } else if (message == '') {
       } else {
         Toast.show(
           "Some error occurred",
@@ -124,7 +245,7 @@ class RazorPay {
 
   Future passResult() async {
     try {
-      Response response = await post(kurl + '/getPaymentByOrder',
+      Response response = await put(kurl + '/getPaymentByOrder',
           headers: <String, String>{
             'Content-Type': 'application/json',
           },
@@ -134,7 +255,6 @@ class RazorPay {
       String body = response.body;
       String message = json.decode(body)['message'];
       print(body);
-      onFetchOrderId(message);
 
       //call saving keys function
     } on TimeoutException catch (_) {
@@ -180,5 +300,16 @@ class RazorPay {
       });
       return;
     });
+  }
+
+  Future<Position> _getLocation() async {
+    var currentLocation;
+    try {
+      currentLocation = await geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.bestForNavigation);
+    } catch (e) {
+      currentLocation = null;
+    }
+    return currentLocation;
   }
 }

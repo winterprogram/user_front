@@ -6,6 +6,8 @@ import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/widgets/image_picker.dart';
 import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'makepaymet_sheet.dart';
+import 'package:maps_launcher/maps_launcher.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MerchantPage extends StatefulWidget {
   final List<dynamic> src;
@@ -14,13 +16,19 @@ class MerchantPage extends StatefulWidget {
   final String merchantName;
   final String merchantAddress;
   final String merchantCategory;
+  final double latitude;
+  final double longitude;
+  final String mobile;
   MerchantPage(
       {this.src,
       this.merchantId,
       this.merchantShopName,
       this.merchantName,
       this.merchantAddress,
-      this.merchantCategory});
+      this.merchantCategory,
+      this.latitude,
+      this.longitude,
+      this.mobile});
   @override
   _MerchantPageState createState() => _MerchantPageState();
 }
@@ -124,6 +132,9 @@ class _MerchantPageState extends State<MerchantPage> {
                             Padding(
                               padding: const EdgeInsets.only(top: 20.0),
                               child: GestureDetector(
+                                onTap: () async {
+                                  await launch("tel:${widget.mobile}");
+                                },
                                 child: Container(
                                   child: Column(
                                     children: <Widget>[
@@ -152,6 +163,10 @@ class _MerchantPageState extends State<MerchantPage> {
                               padding:
                                   const EdgeInsets.only(top: 20.0, left: 30),
                               child: GestureDetector(
+                                onTap: () {
+                                  MapsLauncher.launchCoordinates(
+                                      widget.latitude, widget.longitude);
+                                },
                                 child: Container(
                                   child: Column(
                                     children: <Widget>[
@@ -186,7 +201,6 @@ class _MerchantPageState extends State<MerchantPage> {
                           child: Align(
                             child: Container(
                               height: 48,
-                              width: 162,
                               child: RaisedButton(
                                 onPressed: () {
                                   onClick('MakePayment');

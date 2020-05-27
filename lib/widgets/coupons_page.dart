@@ -371,15 +371,16 @@ class _CouponsState extends State<Coupons> {
       String body = response.body;
       print(body);
       String message = json.decode(body)['message'];
+      int code = json.decode(body)['status'];
       //print(body);
       fetchCoupons(message);
-      if (message == 'coupon for user fetched') {
+      if (code == 200) {
         //print(body);
         setState(() {
           status = 'Loaded';
         });
         return json.decode(body)['data'];
-      } else if (message == 'error blank data while fetching coupon for user') {
+      } else if (code == 404) {
         setState(() {
           status = 'No Coupons';
         });

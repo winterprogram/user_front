@@ -14,6 +14,9 @@ class MerchantCard extends StatelessWidget {
   final String merchantName;
   final String merchantAddress;
   final String merchantCategory;
+  final double latitude;
+  final double longitude;
+  final String mobile;
   MerchantCard(
       {this.ctx,
       this.src,
@@ -21,7 +24,10 @@ class MerchantCard extends StatelessWidget {
       this.merchantShopName,
       this.merchantName,
       this.merchantAddress,
-      this.merchantCategory});
+      this.merchantCategory,
+      this.latitude,
+      this.longitude,
+      this.mobile});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -30,23 +36,8 @@ class MerchantCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Container(
-            height: 113,
-            child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: src.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                    child: Container(
-                        decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black)),
-                        width: 214,
-                        child: Image.network(src[index])),
-                  );
-                }),
-          ),
           GestureDetector(
+            behavior: HitTestBehavior.translucent,
             onTap: () {
               onTapMerchantCard(merchantId, 'MerchantCard');
               Navigator.push(
@@ -59,30 +50,54 @@ class MerchantCard extends StatelessWidget {
                             merchantAddress: merchantAddress,
                             merchantShopName: merchantShopName,
                             merchantCategory: merchantCategory,
+                            latitude: latitude,
+                            longitude: longitude,
+                            mobile: mobile,
                           )));
             },
-            child: Container(
-              height: 100,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 15, left: 24.0),
-                    child: Text(
-                      merchantShopName,
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
+            child: Column(
+              children: <Widget>[
+                Container(
+                  height: 113,
+                  child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: src.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                          child: Container(
+                              decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.black)),
+                              width: 214,
+                              child: Image.network(src[index])),
+                        );
+                      }),
+                ),
+                Container(
+                  height: 100,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(top: 15, left: 24.0),
+                        child: Text(
+                          merchantShopName,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 15, left: 24.0),
+                        child: Text(
+                          merchantAddress,
+                          style:
+                              TextStyle(fontSize: 12, color: Color(0xff474d60)),
+                        ),
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 15, left: 24.0),
-                    child: Text(
-                      merchantAddress,
-                      style: TextStyle(fontSize: 12, color: Color(0xff474d60)),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           Container(

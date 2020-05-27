@@ -191,8 +191,9 @@ class _CategoryState extends State<Category> {
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
       String status = json.decode(body)['message'];
+      int code = json.decode(body)['status'];
 
-      if (status == 'user registered') {
+      if (code == 200) {
         signup(true, status);
         onCreateAccount(u);
         Toast.show(
@@ -212,7 +213,7 @@ class _CategoryState extends State<Category> {
             // Here you can write your code for open new view
           });
         });
-      } else if (status == 'user already exist') {
+      } else if (code == 500) {
         signup(false, status);
         Toast.show(
           "Failure: Your account already exists.",
