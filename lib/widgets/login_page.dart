@@ -197,10 +197,11 @@ class _LoginState extends State<Login> {
         }),
       ).timeout(const Duration(seconds: 10));
       String body = response.body;
-      var data = json.decode(body)['data']['userData'];
       String status = json.decode(body)['message'];
       int code = json.decode(body)['status'];
+      print(body);
       if (code == 200) {
+        var data = json.decode(body)['data']['userData'];
         save(json.decode(body)['data']['userid']);
         saveDetails(
             data['email'], data['fullname'], int.parse(data['mobilenumber']));
