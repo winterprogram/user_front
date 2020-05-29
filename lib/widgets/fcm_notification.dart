@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MessageHandler extends StatefulWidget {
+class NotificationHandle extends StatefulWidget {
   @override
-  _MessageHandlerState createState() => _MessageHandlerState();
+  _NotificationHandleState createState() => _NotificationHandleState();
 }
 
-class _MessageHandlerState extends State<MessageHandler> {
+class _NotificationHandleState extends State<NotificationHandle> {
   final Firestore _db = Firestore.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
@@ -28,6 +28,7 @@ class _MessageHandlerState extends State<MessageHandler> {
 
     _fcm.configure(
       onMessage: (Map<String, dynamic> message) async {
+        print('hi');
         print("onMessage: $message");
         showDialog(
           context: context,

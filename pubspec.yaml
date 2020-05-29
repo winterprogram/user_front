@@ -41,6 +41,9 @@ dev_dependencies:
   firebase_auth: ^0.16.1
   cloud_firestore: ^0.13.6
   firebase_messaging: ^6.0.16
+  flutter_local_notifications: ^1.4.3
+  get: ^2.7.1
+  flushbar: ^1.10.4
 
 flutter:
   uses-material-design: true

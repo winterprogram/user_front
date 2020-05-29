@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/widgets/razorpay.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flushbar/flushbar.dart';
+import 'dart:async';
+import 'dart:io';
 
 class Summary extends StatefulWidget {
   final String userid;
@@ -23,6 +27,10 @@ class Summary extends StatefulWidget {
 }
 
 class _SummaryState extends State<Summary> {
+  String token;
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final FirebaseMessaging _fcm = FirebaseMessaging();
+  StreamSubscription iosSubscription;
   MixPanel mix = MixPanel();
   double amount;
   String couponcode;
@@ -38,6 +46,7 @@ class _SummaryState extends State<Summary> {
   @override
   void initState() {
     super.initState();
+
     amount = this.widget.amount;
     couponcode = this.widget.couponcode;
     discount = this.widget.discount;
@@ -58,12 +67,64 @@ class _SummaryState extends State<Summary> {
     total += conveniencefee;
     userid = this.widget.userid;
     merchantid = this.widget.merchantid;
-    r = RazorPay(
-        context: context,
-        amount: total,
-        userid: userid,
-        merchantid: merchantid,
-        couponcode: couponcode);
+    getToken().then((value) {
+      print(value);
+      token = value;
+      r = RazorPay(
+          context: context,
+          amount: total,
+          userid: userid,
+          merchantid: merchantid,
+          couponcode: couponcode,
+          token: token);
+    });
+    if (Platform.isIOS) {
+      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
+        // save the token  OR subscribe to a topic here
+      });
+    }
+    _fcm.requestNotificationPermissions(IosNotificationSettings());
+    _fcm.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print('hi');
+        print("onMessage: $message");
+        final snackbar = SnackBar(
+          content: Text(message['notification']['body']),
+          behavior: SnackBarBehavior.floating,
+          elevation: 3.0,
+        );
+        //Scaffold.of(context).showSnackBar(snackbar);
+        //_scaffoldKey.currentState.showSnackBar(snackbar);
+        Flushbar(
+          flushbarPosition: FlushbarPosition.TOP,
+          title: message['notification']['title'],
+          message: message['notification']['body'],
+        ).show(context);
+        /*showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            content: ListTile(
+              title: Text(message['notification']['title']),
+              subtitle: Text(message['notification']['body']),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Ok'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        );*/
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+        // TODO optional
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+        // TODO optional
+      },
+    );
   }
 
   @override
@@ -75,6 +136,7 @@ class _SummaryState extends State<Summary> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       body: SafeArea(
         child: Stack(
           children: <Widget>[
@@ -322,5 +384,11 @@ class _SummaryState extends State<Summary> {
     } else {
       return SizedBox();
     }
+  }
+
+  getToken() async {
+    var a = _fcm.subscribeToTopic('puppies');
+    String fcmtoken = await _fcm.getToken();
+    return fcmtoken;
   }
 }

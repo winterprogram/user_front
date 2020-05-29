@@ -12,6 +12,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RazorPay {
+  String token;
   String couponcode;
   Geolocator geolocator = Geolocator();
   Position userLocation;
@@ -27,7 +28,8 @@ class RazorPay {
       this.amount,
       this.userid,
       this.merchantid,
-      this.couponcode}) {
+      this.couponcode,
+      this.token}) {
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
@@ -157,6 +159,8 @@ class RazorPay {
         print('Coupon generated');
       } else if (code == 500) {
         print('no merchant available');
+      } else if (code == 503) {
+        print('amount less than 100');
       } else {
         Toast.show(
           "Some error occurred",
@@ -248,8 +252,10 @@ class RazorPay {
       Response response = await put(kurl + '/getPaymentByOrder',
           headers: <String, String>{
             'Content-Type': 'application/json',
+            'deviceToken': this.token,
           },
           body: jsonEncode(<String, dynamic>{
+            'deviceToken': this.token,
             'order': this.orderid,
           })).timeout(const Duration(seconds: 10));
       String body = response.body;
