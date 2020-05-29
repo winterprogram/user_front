@@ -88,11 +88,11 @@ class _SummaryState extends State<Summary> {
       onMessage: (Map<String, dynamic> message) async {
         print('hi');
         print("onMessage: $message");
-        final snackbar = SnackBar(
+        /*final snackbar = SnackBar(
           content: Text(message['notification']['body']),
           behavior: SnackBarBehavior.floating,
           elevation: 3.0,
-        );
+        );*/
         //Scaffold.of(context).showSnackBar(snackbar);
         //_scaffoldKey.currentState.showSnackBar(snackbar);
         Flushbar(
@@ -131,6 +131,7 @@ class _SummaryState extends State<Summary> {
   void dispose() {
     super.dispose();
     r.clear();
+    iosSubscription.cancel();
   }
 
   @override
@@ -387,7 +388,6 @@ class _SummaryState extends State<Summary> {
   }
 
   getToken() async {
-    var a = _fcm.subscribeToTopic('puppies');
     String fcmtoken = await _fcm.getToken();
     return fcmtoken;
   }

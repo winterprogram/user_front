@@ -5,11 +5,6 @@ import 'package:userfront/widgets/profile_page.dart';
 import 'package:userfront/widgets/search_page.dart';
 import 'coupons_page.dart';
 import 'dashboard.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:async';
-import 'dart:io';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class Navigation extends StatefulWidget {
   @override

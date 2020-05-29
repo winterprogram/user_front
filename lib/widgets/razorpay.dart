@@ -259,7 +259,7 @@ class RazorPay {
             'order': this.orderid,
           })).timeout(const Duration(seconds: 10));
       String body = response.body;
-      String message = json.decode(body)['message'];
+      //String message = json.decode(body)['message'];
       print(body);
 
       //call saving keys function

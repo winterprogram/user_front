@@ -12,7 +12,6 @@ import 'package:userfront/models/Mixpanel.dart';
 import 'package:userfront/widgets/signup_page.dart';
 import 'package:userfront/widgets/login_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 // landing page
 class LandingPage extends StatefulWidget {
@@ -21,7 +20,6 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  final Firestore _db = Firestore.instance;
   MixPanel m = MixPanel();
   final FirebaseMessaging _fcm = FirebaseMessaging();
   final PermissionHandler permissionHandler = PermissionHandler();
@@ -196,7 +194,6 @@ class _LandingPageState extends State<LandingPage> {
   }
 
   getToken() async {
-    var a = _fcm.subscribeToTopic('puppies');
     String fcmtoken = await _fcm.getToken();
     return fcmtoken;
   }
