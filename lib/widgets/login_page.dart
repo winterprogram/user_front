@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/firebase_analytics.dart';
 import 'package:userfront/widgets/constants.dart';
 import 'package:toast/toast.dart';
 import 'package:http/http.dart';
@@ -9,6 +9,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'Mixpanel.dart';
+import 'fcm_notification.dart';
 import 'navigation_page.dart';
 
 class Login extends StatefulWidget {
@@ -17,12 +19,22 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  MixPanel m = MixPanel();
+  FcmNotification fcm;
+  MixPanel mix = MixPanel();
   bool _autoValidate = false;
   SharedPreferences prefs;
   final _formKey = GlobalKey<FormState>();
   String phone;
   String password;
+
+  @override
+  void initState() {
+    super.initState();
+    mix.createMixPanel();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,18 +182,20 @@ class _LoginState extends State<Login> {
   }
 
   login(bool value, String userid, String message) async {
-    m.id = await m.createMixPanel().then((_) {
-      var result = m.mixpanelAnalytics.track(event: 'clickLogin', properties: {
-        'success': value,
-        'userid': userid,
-        'message': message,
-        'distinct_id': m.id
-      });
+    fcm.getToken().then((value) {
+      print(value);
+      var result = mix.mixpanelAnalytics.track(
+          event: 'clickLogin',
+          properties: {
+            'success': value,
+            'userid': userid,
+            'message': message,
+            'distinct_id': value
+          });
       result.then((value) {
         print('this is click login');
         print(value);
       });
-      return;
     });
   }
 
@@ -202,9 +216,13 @@ class _LoginState extends State<Login> {
       print(body);
       if (code == 200) {
         var data = json.decode(body)['data']['userData'];
-        save(json.decode(body)['data']['userid']);
-        saveDetails(
-            data['email'], data['fullname'], int.parse(data['mobilenumber']));
+        save(
+            json.decode(body)['data']['userid'],
+            data['email'],
+            data['fullname'],
+            int.parse(data['mobilenumber']),
+            data['zipcode'],
+            data['gender']);
         login(true, json.decode(body)['data']['userid'], status);
         Toast.show(
           "Login Successful",
@@ -258,18 +276,15 @@ class _LoginState extends State<Login> {
   }
 
 //save keys function
-  void save(String userid) async {
+  void save(String userid, String mail, String name, int mobile, String zipcode,
+      String gender) async {
     prefs = await SharedPreferences.getInstance(); //get instance of app memory
-    final userkey = 'userid';
     //save keys in memory
-    prefs.setString(userkey, userid);
-  }
-
-  void saveDetails(String mail, String name, int mobile) async {
-    prefs = await SharedPreferences.getInstance(); //get instance of app memory
-    prefs.setString('mail', mail);
+    prefs.setString('userid', userid);
+    prefs.setString('email', mail);
     prefs.setString('name', name);
     prefs.setInt('mobile', mobile);
-    print(prefs.getInt('mobile'));
+    prefs.setString('zipcode', zipcode);
+    prefs.setString('gender', gender);
   }
 }

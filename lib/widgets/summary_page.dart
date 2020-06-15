@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/firebase_analytics.dart';
+import 'package:userfront/widgets/fcm_notification.dart';
 import 'package:userfront/widgets/razorpay.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flushbar/flushbar.dart';
 import 'dart:async';
-import 'dart:io';
+
+import 'Mixpanel.dart';
 
 class Summary extends StatefulWidget {
   final String userid;
@@ -27,9 +27,8 @@ class Summary extends StatefulWidget {
 }
 
 class _SummaryState extends State<Summary> {
+  FcmNotification fcm;
   String token;
-  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
   MixPanel mix = MixPanel();
   double amount;
@@ -46,7 +45,7 @@ class _SummaryState extends State<Summary> {
   @override
   void initState() {
     super.initState();
-
+    mix.createMixPanel();
     amount = this.widget.amount;
     couponcode = this.widget.couponcode;
     discount = this.widget.discount;
@@ -67,7 +66,9 @@ class _SummaryState extends State<Summary> {
     total += conveniencefee;
     userid = this.widget.userid;
     merchantid = this.widget.merchantid;
-    getToken().then((value) {
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
+    fcm.getToken().then((value) {
       print(value);
       token = value;
       r = RazorPay(
@@ -78,66 +79,18 @@ class _SummaryState extends State<Summary> {
           couponcode: couponcode,
           token: token);
     });
-    if (Platform.isIOS) {
-      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
-        // save the token  OR subscribe to a topic here
-      });
-    }
-    _fcm.requestNotificationPermissions(IosNotificationSettings());
-    _fcm.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        print('hi');
-        print("onMessage: $message");
-        /*final snackbar = SnackBar(
-          content: Text(message['notification']['body']),
-          behavior: SnackBarBehavior.floating,
-          elevation: 3.0,
-        );*/
-        //Scaffold.of(context).showSnackBar(snackbar);
-        //_scaffoldKey.currentState.showSnackBar(snackbar);
-        Flushbar(
-          flushbarPosition: FlushbarPosition.TOP,
-          title: message['notification']['title'],
-          message: message['notification']['body'],
-        ).show(context);
-        /*showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            content: ListTile(
-              title: Text(message['notification']['title']),
-              subtitle: Text(message['notification']['body']),
-            ),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('Ok'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );*/
-      },
-      onLaunch: (Map<String, dynamic> message) async {
-        print("onLaunch: $message");
-        // TODO optional
-      },
-      onResume: (Map<String, dynamic> message) async {
-        print("onResume: $message");
-        // TODO optional
-      },
-    );
   }
 
   @override
   void dispose() {
     super.dispose();
     r.clear();
-    iosSubscription.cancel();
+    fcm.close();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       body: SafeArea(
         child: Stack(
           children: <Widget>[
@@ -313,15 +266,10 @@ class _SummaryState extends State<Summary> {
   }
 
   onClick(String button) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'onClickSummaryPage',
-          properties: {'button': button, 'distinct_id': mix.id});
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
+          properties: {'button': button, 'distinct_id': token});
     });
   }
 
@@ -385,10 +333,5 @@ class _SummaryState extends State<Summary> {
     } else {
       return SizedBox();
     }
-  }
-
-  getToken() async {
-    String fcmtoken = await _fcm.getToken();
-    return fcmtoken;
   }
 }

@@ -16,10 +16,10 @@ class User {
     @required this.gender,
     @required this.mailid,
     @required this.mobilenumber,
-    @required this.city,
-    @required this.password,
+    this.city,
+    this.password,
     @required this.zipcode,
-    @required this.dob,
+    this.dob,
   });
   addCategory(List<String> selectedCategory) {
     this.category = selectedCategory;

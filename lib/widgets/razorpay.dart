@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:http/http.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/fcm_notification.dart';
+import 'Mixpanel.dart';
 import 'constants.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RazorPay {
+  FcmNotification fcm = FcmNotification();
   String token;
   String couponcode;
   Geolocator geolocator = Geolocator();
@@ -285,26 +287,26 @@ class RazorPay {
   }
 
   onFetchOrderId(String message) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    mix.createMixPanel();
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'fetchOrderId',
-          properties: {'message': message, 'distinct_id': mix.id});
+          properties: {'message': message, 'distinct_id': token});
       result.then((value) {
         print(value);
       });
-      return;
     });
   }
 
   payment(String message) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    mix.createMixPanel();
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'onPaymentDone',
-          properties: {'message': message, 'distinct_id': mix.id});
+          properties: {'message': message, 'distinct_id': token});
       result.then((value) {
         print(value);
       });
-      return;
     });
   }
 

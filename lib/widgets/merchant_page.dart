@@ -2,9 +2,11 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/firebase_analytics.dart';
 import 'package:userfront/widgets/image_picker.dart';
 import 'package:facebook_audience_network/facebook_audience_network.dart';
+import 'Mixpanel.dart';
+import 'fcm_notification.dart';
 import 'makepaymet_sheet.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -34,10 +36,14 @@ class MerchantPage extends StatefulWidget {
 }
 
 class _MerchantPageState extends State<MerchantPage> {
+  FcmNotification fcm;
   MixPanel mix = MixPanel();
   @override
   void initState() {
     super.initState();
+    mix.createMixPanel();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
     FacebookAudienceNetwork.init();
   }
 
@@ -130,9 +136,11 @@ class _MerchantPageState extends State<MerchantPage> {
                           padding: const EdgeInsets.only(top: 20.0),
                           child: GestureDetector(
                             onTap: () async {
+                              onClick('Call');
                               await launch("tel:${widget.mobile}");
                             },
                             child: Container(
+                              width: 50,
                               child: Column(
                                 children: <Widget>[
                                   Icon(
@@ -159,6 +167,7 @@ class _MerchantPageState extends State<MerchantPage> {
                           padding: const EdgeInsets.only(top: 20.0, left: 30),
                           child: GestureDetector(
                             onTap: () {
+                              onClick('Direction');
                               MapsLauncher.launchCoordinates(
                                   widget.latitude, widget.longitude);
                             },
@@ -277,14 +286,13 @@ class _MerchantPageState extends State<MerchantPage> {
   }
 
   onClick(String button) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'onClickMerchantPage',
-          properties: {'button': button, 'distinct_id': mix.id});
+          properties: {'button': button, 'distinct_id': token});
       result.then((value) {
         print(value);
       });
-      return;
     });
   }
 

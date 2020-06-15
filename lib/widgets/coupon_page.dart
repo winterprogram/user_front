@@ -7,10 +7,13 @@ import 'dart:io';
 import 'package:toast/toast.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/firebase_analytics.dart';
 import 'package:userfront/widgets/summary_page.dart';
+import 'Mixpanel.dart';
 import 'constants.dart';
 import 'package:shimmer/shimmer.dart';
+
+import 'fcm_notification.dart';
 
 class Coupon extends StatefulWidget {
   final double amount;
@@ -21,6 +24,7 @@ class Coupon extends StatefulWidget {
 }
 
 class _CouponState extends State<Coupon> {
+  FcmNotification fcm;
   MixPanel mix = MixPanel();
   String userid;
   String merchantid;
@@ -39,6 +43,9 @@ class _CouponState extends State<Coupon> {
   @override
   void initState() {
     super.initState();
+    mix.createMixPanel();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
     amount = this.widget.amount;
     getCoupons().then((value) {
       setState(() {
@@ -363,7 +370,7 @@ class _CouponState extends State<Coupon> {
       String body = response.body;
       String message = json.decode(body)['message'];
       int code = json.decode(body)['status'];
-      onFetchCoupon(message);
+      //onFetchCoupon(message);
       //print(body);
       if (code == 200) {
         //print(body);
@@ -409,32 +416,22 @@ class _CouponState extends State<Coupon> {
   }
 
   onFetchCoupon(String message) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'fetchCoupon',
-          properties: {'message': message, 'distinct_id': mix.id});
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
+          properties: {'message': message, 'distinct_id': token});
     });
   }
 
   onTapCoupon(String couponCode, String button) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'onClickCouponPage',
           properties: {
             'coupon': couponCode,
             'button': button,
-            'distinct_id': mix.id
+            'distinct_id': token
           });
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
     });
   }
 }

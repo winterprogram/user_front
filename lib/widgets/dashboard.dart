@@ -16,9 +16,11 @@ import 'package:userfront/widgets/map_page.dart';
 import 'package:userfront/widgets/merchant_card.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:app_settings/app_settings.dart';
+import 'Mixpanel.dart';
 import 'custom_dialog.dart';
-import 'package:userfront/models/Mixpanel.dart';
 import 'package:facebook_audience_network/facebook_audience_network.dart';
+
+import 'fcm_notification.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -26,6 +28,7 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  FcmNotification fcm;
   MixPanel mix = MixPanel();
   final PermissionHandler permissionHandler = PermissionHandler();
   Map<PermissionGroup, PermissionStatus> permissions;
@@ -42,8 +45,10 @@ class _DashboardState extends State<Dashboard> {
   @override
   void initState() {
     super.initState();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
     FacebookAudienceNetwork.init();
-
+    mix.createMixPanel();
     print(status);
     requestLocationPermission().then((value) {
       _getGPS().then((value) {
@@ -445,35 +450,6 @@ class _DashboardState extends State<Dashboard> {
         .then((_) {
       return;
     });
-    /* if (Theme.of(context).platform == TargetPlatform.android) {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(    } else if (status == 'no shops found') {
-                              return Column(
-                                children: <Widget>[
-                                  Container(
-                                    child: Text('No shops found near you.'),
-                                  ),
-                                  Container(
-                                    height: 150,
-                                    color: Colors
-              title: Text("Can't get gurrent location"),
-              content: const Text(
-                  'Please make sure you enable GPS and set location mode to High accruacy and try again'),
-              actions: <Widget>[
-                FlatButton(
-                    child: Text('Ok'),
-                    onPressed: () {
-                      final AndroidIntent intent = AndroidIntent(
-                          action: 'android.settings.LOCATION_SOURCE_SETTINGS');
-                      intent.launch();
-                      Navigator.of(context, rootNavigator: true).pop('dialog');
-                    })
-              ],
-            );
-          });
-    }*/
   }
 
   //to know if gps is on
@@ -526,32 +502,22 @@ class _DashboardState extends State<Dashboard> {
   }
 
   fetchMerchant(String message) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'fetchMerchant',
-          properties: {'message': message, 'distinct_id': mix.id});
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
+          properties: {'message': message, 'distinct_id': token});
     });
   }
 
   onTapChangeLocation(String location) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'onClickDashboard',
           properties: {
             'current': location,
             'button': 'ChangeLocation',
-            'distinct_id': mix.id
+            'distinct_id': token
           });
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
     });
   }
 }

@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/firebase_analytics.dart';
+import 'package:search_map_place/search_map_place.dart';
+//import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:floating_search_bar/floating_search_bar.dart';
+//import 'package:google_maps_webservice/places.dart';
+import 'package:userfront/widgets/constants.dart';
+
+import 'Mixpanel.dart';
+import 'fcm_notification.dart';
 
 class MapPage extends StatefulWidget {
   final Position userLocation;
@@ -14,6 +23,11 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
+  FcmNotification fcm;
+  //GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
+
+  final _tcontroller = TextEditingController();
+  FocusNode _focus = new FocusNode();
   MixPanel mix = MixPanel();
   String locationtoprint = 'Loading...';
   List<Placemark> placemark;
@@ -27,9 +41,13 @@ class _MapPageState extends State<MapPage> {
   Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
   var location = new Location();
+  //Mode _mode = Mode.overlay;
   @override
   void initState() {
     super.initState();
+    mix.createMixPanel();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
     userLocation = widget.userLocation;
     BitmapDescriptor.fromAssetImage(
             ImageConfiguration(size: Size(165, 200)), 'images/location_pin.png')
@@ -44,11 +62,13 @@ class _MapPageState extends State<MapPage> {
         locationtoprint = sublocality + ', ' + city;
       });
     });
+    _focus.addListener(_onFocusChange);
   }
 
   @override
   void dispose() {
     locationSubscription.cancel();
+    _tcontroller.dispose();
     super.dispose();
   }
 
@@ -57,73 +77,155 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Expanded(
-              child: Stack(
-                children: <Widget>[
-                  GoogleMap(
-                    zoomControlsEnabled: false,
-                    myLocationButtonEnabled: false,
-                    mapToolbarEnabled: false,
-                    markers: _marker,
-                    onTap: _handleTap,
-                    compassEnabled: false,
-                    tiltGesturesEnabled: false,
-                    myLocationEnabled: true,
-                    mapType: MapType.normal,
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(widget.userLocation.latitude,
-                          this.widget.userLocation.longitude),
-                      zoom: 17,
-                    ),
-                    onMapCreated: (GoogleMapController controller) {
-                      _marker.add(Marker(
-                        markerId: MarkerId(userLocation.toString()),
-                        position: LatLng(
-                            userLocation.latitude, userLocation.longitude),
-                        icon: pinLocationIcon,
-                      ));
-                      _controller.complete(controller);
-                      mapController = controller;
-                      locationSubscription = location.onLocationChanged
-                          .listen((LocationData position) {
-                        setState(() {
-                          userPosition =
-                              LatLng(position.latitude, position.longitude);
+              child: Container(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    GoogleMap(
+                      zoomControlsEnabled: false,
+                      myLocationButtonEnabled: false,
+                      mapToolbarEnabled: false,
+                      markers: _marker,
+                      onTap: _handleTap,
+                      compassEnabled: false,
+                      tiltGesturesEnabled: false,
+                      myLocationEnabled: true,
+                      mapType: MapType.normal,
+                      initialCameraPosition: CameraPosition(
+                        target: LatLng(widget.userLocation.latitude,
+                            this.widget.userLocation.longitude),
+                        zoom: 17,
+                      ),
+                      onMapCreated: (GoogleMapController controller) {
+                        _marker.add(Marker(
+                          anchor: Offset(0.5, 0.75),
+                          draggable: false,
+                          markerId: MarkerId(userLocation.toString()),
+                          position: LatLng(
+                              userLocation.latitude, userLocation.longitude),
+                          icon: pinLocationIcon,
+                        ));
+                        _controller.complete(controller);
+                        mapController = controller;
+                        locationSubscription = location.onLocationChanged
+                            .listen((LocationData position) {
+                          setState(() {
+                            userPosition =
+                                LatLng(position.latitude, position.longitude);
+                          });
                         });
-                      });
-                    },
-                  ),
-                  Positioned(
-                    bottom: 20,
-                    right: 20,
-                    child: GestureDetector(
-                      onTap: () {
-                        goToMyLocation();
                       },
-                      child: Container(
-                        padding: EdgeInsets.all(15),
-                        child: Icon(
-                          Icons.my_location,
-                          color: Color(0xff3A91EC),
-                        ),
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 5,
-                              blurRadius: 7,
-                              offset:
-                                  Offset(0, 3), // changes position of shadow
-                            ),
-                          ],
-                          shape: BoxShape.circle,
-                          color: Colors.white,
+                    ),
+                    Positioned(
+                      bottom: 20,
+                      right: 20,
+                      child: GestureDetector(
+                        onTap: () {
+                          goToMyLocation();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(15),
+                          child: Icon(
+                            Icons.my_location,
+                            color: Color(0xff3A91EC),
+                          ),
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset:
+                                    Offset(0, 3), // changes position of shadow
+                              ),
+                            ],
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      top: 10,
+                      left: 15,
+                      right: 15,
+                      child: SearchMapPlaceWidget(
+                        apiKey: kGoogleApiKey,
+                        // The language of the autocompletion
+                        language: 'en',
+                        // The position used to give better recomendations. In this case we are using the user position
+                        location: LatLng(
+                            userLocation.latitude, userLocation.longitude),
+                        radius: 30000,
+                        onSelected: (Place place) async {
+                          final geolocation = await place.geolocation;
+
+                          mapController.animateCamera(
+                              CameraUpdate.newLatLng(geolocation.coordinates));
+                          mapController.animateCamera(
+                              CameraUpdate.newLatLngBounds(
+                                  geolocation.bounds, 0));
+                        },
+                      ),
+                    )
+                    /*Positioned(
+                      top: 10,
+                      left: 15,
+                      right: 15,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        color: Colors.white,
+                        child: Column(
+                          children: <Widget>[
+                            Row(
+                              mainAxisSize: MainAxisSize.max,
+                              children: <Widget>[
+                                Expanded(
+                                  child: TextField(
+                                    onChanged:(String str){
+
+                      },
+                                    onTap: autoComplete(),
+                                    controller: _tcontroller,
+                                    focusNode: _focus,
+                                    cursorColor: Colors.black,
+                                    keyboardType: TextInputType.text,
+                                    textInputAction: TextInputAction.go,
+                                    decoration: InputDecoration(
+                                        border: InputBorder.none,
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 15),
+                                        hintText: "Search..."),
+                                  ),
+                                ),
+                                IconButton(
+                                    onPressed: () {
+                                      _tcontroller.clear();
+                                      _focus.unfocus();
+                                    },
+                                    icon: Icon(Icons.cancel))
+                              ],
+                            ),
+                            Visibility(
+                                child: Container(
+                              color: Colors.grey[100],
+                              child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: 2,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    return Container(height: 20);
+                                  }),
+                            ))
+                          ],
+                        ),
+                      ),
+                    ),*/
+                  ],
+                ),
               ),
             ),
             Container(
@@ -212,6 +314,37 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  /*autoComplete() async {
+    Prediction p = await PlacesAutocomplete.show(
+      context: context,
+      apiKey: kGoogleApiKey,
+      mode: _mode,
+      language: "en",
+      components: [Component(Component.country, "in")],
+    );
+    displayPrediction(p);
+  }
+
+  Future<Null> displayPrediction(Prediction p) async {
+    if (p != null) {
+      // get detail (lat/lng)
+      PlacesDetailsResponse detail =
+          await _places.getDetailsByPlaceId(p.placeId)
+
+      print(detail.result.addressComponents);
+    }
+  }
+
+  void onError(PlacesAutocompleteResponse response) {
+    Scaffold.of(context).showSnackBar(
+      SnackBar(content: Text(response.errorMessage)),
+    );
+  }*/
+
+  void _onFocusChange() {
+    debugPrint("Focus: " + _focus.hasFocus.toString());
+  }
+
   goToMyLocation() async {
     onClickCurrent();
     setState(() {
@@ -219,6 +352,8 @@ class _MapPageState extends State<MapPage> {
           latitude: userPosition.latitude, longitude: userPosition.longitude);
       _marker.clear();
       _marker.add(Marker(
+        anchor: Offset(0.5, 0.75),
+        draggable: false,
         markerId: MarkerId(userPosition.toString()),
         position: LatLng(userPosition.latitude, userPosition.longitude),
         icon: pinLocationIcon,
@@ -246,6 +381,8 @@ class _MapPageState extends State<MapPage> {
           Position(latitude: point.latitude, longitude: point.longitude);
       _marker.clear();
       _marker.add(Marker(
+        anchor: Offset(0.5, 0.75),
+        draggable: false,
         markerId: MarkerId(userLocation.toString()),
         position: LatLng(userLocation.latitude, userLocation.longitude),
         icon: pinLocationIcon,
@@ -274,45 +411,30 @@ class _MapPageState extends State<MapPage> {
   }
 
   onClickCurrent() async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'onClickMapPage',
-          properties: {'button': 'currentLocation', 'distinct_id': mix.id});
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
+          properties: {'button': 'currentLocation', 'distinct_id': token});
     });
   }
 
   onClickMap() async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'onClickMapPage',
-          properties: {'button': 'Map', 'distinct_id': mix.id});
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
+          properties: {'button': 'Map', 'distinct_id': token});
     });
   }
 
   onClickConfirm() async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'onClickMapPage',
           properties: {
             'button': 'confirm',
             'location': locationtoprint,
-            'distinct_id': mix.id
+            'distinct_id': token
           });
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
     });
   }
 }

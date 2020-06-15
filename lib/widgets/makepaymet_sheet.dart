@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/firebase_analytics.dart';
 
+import 'Mixpanel.dart';
 import 'coupon_page.dart';
+import 'fcm_notification.dart';
 
 class MakePaymentModal extends StatefulWidget {
   @override
@@ -10,10 +12,20 @@ class MakePaymentModal extends StatefulWidget {
 }
 
 class _MakePaymentModalState extends State<MakePaymentModal> {
+  FcmNotification fcm;
   MixPanel mix = MixPanel();
   bool _autoValidate = false;
   final _formKey = GlobalKey<FormState>();
   double amount;
+
+  @override
+  void initState() {
+    super.initState();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
+    mix.createMixPanel();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -135,15 +147,10 @@ class _MakePaymentModalState extends State<MakePaymentModal> {
   }
 
   confirmAmount(double amounts) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'amountLogin',
-          properties: {'amount': amounts, 'distinct_id': mix.id});
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
+          properties: {'amount': amounts, 'distinct_id': token});
     });
   }
 }

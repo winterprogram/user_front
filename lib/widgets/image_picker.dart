@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
+import 'fcm_notification.dart';
+
 class GalleryPhotoViewWrapper extends StatefulWidget {
   GalleryPhotoViewWrapper({
     this.backgroundDecoration,
@@ -27,10 +29,13 @@ class GalleryPhotoViewWrapper extends StatefulWidget {
 }
 
 class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
+  FcmNotification fcm;
   int currentIndex;
 
   @override
   void initState() {
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
     currentIndex = widget.initialIndex;
     super.initState();
   }

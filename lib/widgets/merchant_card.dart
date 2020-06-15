@@ -1,12 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/fcm_notification.dart';
+import 'package:userfront/widgets/firebase_analytics.dart';
 import 'package:userfront/widgets/merchant_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'Mixpanel.dart';
 import 'makepaymet_sheet.dart';
 
 class MerchantCard extends StatelessWidget {
   final BuildContext ctx;
+  final FcmNotification fcm = FcmNotification();
   final MixPanel mix = MixPanel();
   final List<dynamic> src;
   final String merchantId;
@@ -28,6 +31,7 @@ class MerchantCard extends StatelessWidget {
       this.latitude,
       this.longitude,
       this.mobile});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -142,17 +146,14 @@ class MerchantCard extends StatelessWidget {
   }
 
   onTapMerchantCard(String merchantid, String button) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    mix.createMixPanel();
+    fcm.initialize();
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(event: 'onClick', properties: {
         'button': button,
         'merchantid': merchantid,
-        'distinct_id': mix.id
+        'distinct_id': token
       });
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
     });
   }
 }

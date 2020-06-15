@@ -28,20 +28,15 @@ class MixPanel {
   }
 
   Future<void> createMixPanel() async {
-    this.id = await getID().then((_) {
-      this.mixpanelAnalytics = MixpanelAnalytics(
-        token: 'a86ebdc33c2fc94098a9bc92fbc53c88',
-        userId$: this._user$,
-        shouldAnonymize: false,
-        verbose: true,
-        shaFn: (value) => value,
-        onError: (e) => () {
-          print(e);
-        },
-      );
-
-      print(this.id);
-      return id;
-    });
+    this.mixpanelAnalytics = MixpanelAnalytics(
+      token: 'a86ebdc33c2fc94098a9bc92fbc53c88',
+      userId$: this._user$,
+      shouldAnonymize: false,
+      verbose: true,
+      shaFn: (value) => value,
+      onError: (e) => () {
+        print(e);
+      },
+    );
   }
 }

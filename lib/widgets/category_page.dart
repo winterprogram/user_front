@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/Mixpanel.dart';
+import 'package:userfront/widgets/firebase_analytics.dart';
 import 'package:userfront/models/user_signup.dart';
 import 'package:http/http.dart';
 import 'package:userfront/widgets/constants.dart';
@@ -12,6 +13,8 @@ import 'constants.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mixpanel_analytics/mixpanel_analytics.dart';
 
+import 'fcm_notification.dart';
+
 class Category extends StatefulWidget {
   final User u;
   Category(this.u);
@@ -20,7 +23,9 @@ class Category extends StatefulWidget {
 }
 
 class _CategoryState extends State<Category> {
-  MixPanel m = MixPanel();
+  MixPanel mix = MixPanel();
+  FcmNotification fcm;
+  FireBaseAnalytics fba = FireBaseAnalytics();
   Map<String, Widget> avatar = {
     'Restaurant/Bar': Icon(
       Icons.restaurant,
@@ -39,6 +44,15 @@ class _CategoryState extends State<Category> {
     'Boutiques'
   ];
   List<String> selectedCategoryList;
+
+  @override
+  void initState() {
+    super.initState();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
+    mix.createMixPanel();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -250,24 +264,20 @@ class _CategoryState extends State<Category> {
   }
 
   signup(bool value, String message) async {
-    m.id = await m.createMixPanel().then((_) {
-      var result = m.mixpanelAnalytics.track(event: 'clickSignup', properties: {
-        'success': value,
-        'message': message,
-        'distinct_id': m.id
-      });
-
-      result.then((value) {
-        print('this is click signup');
-        print(value);
-      });
-      return;
+    fcm.getToken().then((value) {
+      var result = mix.mixpanelAnalytics.track(
+          event: 'clickSignup',
+          properties: {
+            'success': value,
+            'message': message,
+            'distinct_id': value
+          });
     });
   }
 
   onCreateAccount(User u) async {
-    m.id = await m.createMixPanel().then((_) {
-      var result = m.mixpanelAnalytics
+    fcm.getToken().then((value) {
+      var result = mix.mixpanelAnalytics
           .engage(operation: MixpanelUpdateOperations.$set, value: {
         '\$first_name': u.fullname,
         '\$created': DateTime.now().toUtc().toIso8601String(),
@@ -278,13 +288,8 @@ class _CategoryState extends State<Category> {
         'city': u.city,
         'category': u.category,
         'zipcode': u.zipcode,
-        'distinct_id': m.id
+        'distinct_id': value
       });
-      result.then((value) {
-        print('this is signup profile');
-        print(value);
-      });
-      return;
     });
   }
 }

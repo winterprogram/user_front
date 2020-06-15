@@ -7,8 +7,10 @@ import 'dart:io';
 import 'package:toast/toast.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/firebase_analytics.dart';
+import 'Mixpanel.dart';
 import 'constants.dart';
+import 'fcm_notification.dart';
 
 class Coupons extends StatefulWidget {
   @override
@@ -16,12 +18,16 @@ class Coupons extends StatefulWidget {
 }
 
 class _CouponsState extends State<Coupons> {
+  FcmNotification fcm;
   MixPanel mix = MixPanel();
   String status = 'Loading';
   List coupons = List();
   @override
   void initState() {
     super.initState();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
+    mix.createMixPanel();
     getCoupons().then((value) {
       setState(() {
         if (value != null) {
@@ -418,15 +424,10 @@ class _CouponsState extends State<Coupons> {
   }
 
   fetchCoupons(String message) async {
-    mix.id = await mix.createMixPanel().then((_) {
+    fcm.getToken().then((token) {
       var result = mix.mixpanelAnalytics.track(
           event: 'fetchCoupons',
-          properties: {'message': message, 'distinct_id': mix.id});
-      result.then((value) {
-        print('this is click login');
-        print(value);
-      });
-      return;
+          properties: {'message': message, 'distinct_id': token});
     });
   }
 }

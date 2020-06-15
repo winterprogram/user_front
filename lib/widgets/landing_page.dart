@@ -7,11 +7,12 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info/device_info.dart';
-import 'package:mixpanel_analytics/mixpanel_analytics.dart';
-import 'package:userfront/models/Mixpanel.dart';
+import 'package:userfront/widgets/firebase_analytics.dart';
 import 'package:userfront/widgets/signup_page.dart';
 import 'package:userfront/widgets/login_page.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:mixpanel_analytics/mixpanel_analytics.dart';
+import 'Mixpanel.dart';
+import 'fcm_notification.dart';
 
 // landing page
 class LandingPage extends StatefulWidget {
@@ -20,19 +21,21 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  MixPanel m = MixPanel();
-  final FirebaseMessaging _fcm = FirebaseMessaging();
+  FcmNotification fcm;
+  MixPanel mix = MixPanel();
+  FireBaseAnalytics fba = FireBaseAnalytics();
   final PermissionHandler permissionHandler = PermissionHandler();
   Map<PermissionGroup, PermissionStatus> permissions;
   @override
   void initState() {
     super.initState();
+    mix.createMixPanel();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
     checkfirstLogin();
   }
 
   signup(BuildContext context) async {
-    // Navigator.push returns a Future that completes after calling
-    // Navigator.pop on the Selection Screen.
     bool result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => SignUp()),
@@ -73,9 +76,6 @@ class _LandingPageState extends State<LandingPage> {
                       ),
                       child: Text('Login', style: TextStyle(fontSize: 15)),
                       onPressed: () {
-                        getToken().then((value) {
-                          print(value);
-                        });
                         onClickLandingPage('Login');
                         Navigator.push(
                           context,
@@ -101,7 +101,6 @@ class _LandingPageState extends State<LandingPage> {
                       ),
                       onPressed: () {
                         onClickLandingPage('Signup');
-                        signup(context);
                       },
                       color: Colors.transparent,
                     ),
@@ -153,27 +152,18 @@ class _LandingPageState extends State<LandingPage> {
       print(identifier);
       print(deviceBrand);
       print(osVersion);
-      /*var result = _mixpanel.track(event: 'appInstall', properties: {
+      var result = mix.mixpanelAnalytics
+          .engage(operation: MixpanelUpdateOperations.$set, value: {
+        'osName': osName,
         'deviceName': deviceName,
         'deviceBrand': deviceBrand,
         'osVersion': osVersion,
-        'installTime': DateTime.now().toString(),
-      });*/
-      m.id = await m.createMixPanel().then((_) {
-        var result = m.mixpanelAnalytics
-            .engage(operation: MixpanelUpdateOperations.$set, value: {
-          'osName': osName,
-          'deviceName': deviceName,
-          'deviceBrand': deviceBrand,
-          'osVersion': osVersion,
-          'installTime': DateTime.now().toUtc().toIso8601String(),
-          'distinct_id': m.id
-        });
-        result.then((value) {
-          print('This is first login');
-          print(value);
-        });
-        return;
+        'installTime': DateTime.now().toUtc().toIso8601String(),
+        'distinct_id': fcm.getToken()
+      });
+      result.then((value) {
+        print('This is first login');
+        print(value);
       });
 
       prefs.setBool('firstlogin', false);
@@ -181,20 +171,15 @@ class _LandingPageState extends State<LandingPage> {
   }
 
   onClickLandingPage(String button) async {
-    m.id = await m.createMixPanel().then((_) {
-      var result = m.mixpanelAnalytics.track(
+    fcm.getToken().then((value) {
+      print(value);
+      var result = mix.mixpanelAnalytics.track(
           event: 'onClickLandingPage',
-          properties: {'button': button, 'distinct_id': m.id});
+          properties: {'button': button, 'distinct_id': value});
       result.then((value) {
         print('this is on click');
         print(value);
       });
-      return;
     });
-  }
-
-  getToken() async {
-    String fcmtoken = await _fcm.getToken();
-    return fcmtoken;
   }
 }

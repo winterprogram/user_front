@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'fcm_notification.dart';
+
 class Search extends StatefulWidget {
   @override
   _SearchState createState() => _SearchState();
 }
 
 class _SearchState extends State<Search> {
+  FcmNotification fcm;
+
+  @override
+  void initState() {
+    super.initState();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(

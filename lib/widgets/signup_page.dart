@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 
 import 'category_page.dart';
+import 'fcm_notification.dart';
 
 class SignUp extends StatefulWidget {
   @override
@@ -14,12 +15,14 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  FcmNotification fcm;
   bool _autoValidate = false;
   final _formKey = GlobalKey<FormState>();
   String name;
   String selectedGender;
   String phone;
-  String password;
+  final password = TextEditingController();
+  final verifyPassword = TextEditingController();
   String email;
   String zipcode;
   String selectedCity;
@@ -27,6 +30,13 @@ class _SignUpState extends State<SignUp> {
   DateTime dob = DateTime.now();
   final List<String> city = <String>['Navi Mumbai', 'Thane', 'Mumbai'];
   final List<String> gender = <String>['Male', 'Female', 'Other'];
+
+  @override
+  void initState() {
+    super.initState();
+    fcm = new FcmNotification(context: context);
+    fcm.initialize();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -217,9 +227,7 @@ class _SignUpState extends State<SignUp> {
                               ),
                               Container(
                                 child: TextFormField(
-                                  onSaved: (String value) {
-                                    password = value;
-                                  },
+                                  controller: password,
                                   validator: validatePassword,
                                   obscureText: true,
                                   style: TextStyle(
@@ -240,6 +248,44 @@ class _SignUpState extends State<SignUp> {
                                             Radius.circular(24))),
                                     hintText: 'Enter your password',
                                     labelText: 'Password',
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Container(
+                                child: TextFormField(
+                                  controller: verifyPassword,
+                                  validator: (val) {
+                                    if (val.isEmpty) {
+                                      return 'Required';
+                                    } else if (password.text !=
+                                        verifyPassword.text) {
+                                      return 'Password does not match';
+                                    } else {
+                                      return null;
+                                    }
+                                  },
+                                  obscureText: true,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                  ),
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.all(10),
+                                    border: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Color(0xff426ed9)),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(24))),
+                                    enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Color(0xff426ed9)),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(24))),
+                                    hintText: 'Enter your password again',
+                                    labelText: 'Verify Password',
                                   ),
                                 ),
                               ),
@@ -401,7 +447,7 @@ class _SignUpState extends State<SignUp> {
                                         gender: selectedGender,
                                         mailid: email.trim(),
                                         city: selectedCity,
-                                        password: password.trim(),
+                                        password: password.text.trim(),
                                         zipcode: zipcode.trim(),
                                         mobilenumber: phone.trim(),
                                         dob: dateofbirth,
